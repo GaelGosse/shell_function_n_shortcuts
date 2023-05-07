@@ -12,10 +12,12 @@
 #		 !! = the previous command line
 
 ##### COLORS #####
+
 function mini()
 {
-	cmd="cd ~/minishell && clear && hcreate"
+	cmd="cd ~/mini_mael/minishell/minishell && clear "
 
+	h=""
 	m=""
 	g=""
 	v=""
@@ -28,6 +30,10 @@ function mini()
 			echo -e $RED"something wrong"$RST
 			exit 0
 		fi
+		if [[ "${1/'h'}" != $1 ]]
+		then
+			h=" && hcreate "
+		fi
 		if [[ "${1/'m'}" != $1 ]]
 		then
 			m=" && make re"
@@ -36,7 +42,7 @@ function mini()
 		fi
 		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
 		then
-			v="valgrind --suppressions=./.readline.supp --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes --log-file='filename.erl'"
+			v="valgrind --suppressions=./leak.txt --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes "
 		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
 		then
 			g="gdb"
@@ -44,12 +50,42 @@ function mini()
 	fi
 	if [[ $# == 1 ]]
 	then
-		total=$cmd$m" && clear && "$v$g" ./minishell"
+		total=$cmd$h$m" && clear && "$v$g" ./minishell"
 		eval $total
+		echo
+		echo $total
+		echo
 	elif [[ $# == 2 ]]
 	then
-		total=$cmd$m" && clear && echo -e \"$2\" | "$v$g" ./minishell"
+		total=$cmd$h$m" && clear && echo -e \"$2\" | "$v$g" ./minishell"
 		eval $total
+		echo
+		echo $total
+		echo
+	elif [[ $# == 0 ]]
+	then
+		total=$cmd" && make && ./minishell "
+		eval $total
+	fi
+}
+
+function osco()
+{
+	if [[ $# == 1 ]]
+	then
+		cd ~/osco_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
+	else
+		cd ~/osco_sh && make && ./minishell
+	fi
+}
+
+function mathieu()
+{
+	if [[ $# == 1 ]]
+	then
+		cd ~/mathieu_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
+	else
+		cd ~/mathieu_sh && make && ./minishell
 	fi
 }
 
@@ -123,12 +159,15 @@ alias gcl='git clone'
 alias ..='cd ..'
 alias c='clear'
 alias l='ls'
-alias grep='grep --color=always'
+alias grep='grep --color=always --binary-files=without-match'
 alias env+='env -0 | sort -z | tr "\0" "\n"'
 
+# alias set_rc='cp -f ~/42/.shortcut ~/.'
+# alias get_rc='cp -f ~/.shortcut ~/42/.'
 
 shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
-exe_name="a.out"
+# shell_name=$(ps -ef | grep $$ | grep -v grep | head -1 | awk '{print $8}')
+exe_name="pipex"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
 
@@ -158,29 +197,29 @@ function select_option {
     trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
     cursor_blink_off
 
-    local selected=0
-    while true; do
-        # print options by overwriting the last lines
-        local idx=0
-        for opt; do
-            cursor_to $(($startrow + $idx))
-            if [ $idx -eq $selected ]; then
-                print_selected "$opt"
-            else
-                print_option "$opt"
-            fi
-            ((idx++))
-        done
+	local selected=0
+	while true; do
+		# print options by overwriting the last lines
+		local idx=0
+		for opt; do
+			cursor_to $(($startrow + $idx))
+			if [ $idx -eq $selected ]; then
+				print_selected "$opt"
+			else
+				print_option "$opt"
+			fi
+			((idx++))
+		done
 
-        # user key control
-        case `key_input` in
-            enter) break;;
-            up)    ((selected--));
-                   if [ $selected -lt 0 ]; then selected=$(($# - 1)); fi;;
-            down)  ((selected++));
-                   if [ $selected -ge $# ]; then selected=0; fi;;
-        esac
-    done
+		# user key control
+		case `key_input` in
+			enter) break;;
+			up)    ((selected--));
+					if [ $selected -lt 0 ]; then selected=$(($# - 1)); fi;;
+			down)  ((selected++));
+					if [ $selected -ge $# ]; then selected=0; fi;;
+		esac
+	done
 
     # cursor position back to normal
     cursor_to $lastrow
@@ -190,15 +229,6 @@ function select_option {
     return $selected
 }
 
-function ppx()
-{
-	clear
-	rm -f *.gch
-	rm -f */*.gch
-	gcc -Wall -Wextra -Werror *.c libft/*.c *.h libft/*.h -o pipex && ./pipex infile "ls" "grep c" outfile
-	rm -f *.gch
-	rm -f */*.gch
-}
 function ld()
 {
 	actual_path=$(pwd)/*
@@ -222,7 +252,7 @@ function lf()
 		if [[ -f $file ]]; then
 			echo -e "$GREEN $filename"
 		fi
-	done	
+	done
 }
 
 function updt()
@@ -249,6 +279,21 @@ function updt()
 	else
 		echo -e $BOLD_WHITE"-----   music up to date   -----"$RST
 	fi
+}
+
+function cron_edit()
+{
+	code ~/.updt.sh
+	echo "for more: "
+	echo "crontab -e"
+}
+
+function cfg()
+{
+	code ~/save_shortcut/.shortcut
+	# a=$(pwd)
+	# cd ~/42 && code 42/.shortcut
+	# cd $a
 }
 
 function cfga()
@@ -306,15 +351,15 @@ function start()
 
 function normi()
 {
-	norminette | grep -vi OK 
+	norminette | grep -vi OK
 
-	echo "" 
+	echo ""
 	nbr_error=$(norminette | grep Error! | wc -l)
 	nbr_ok=$(norminette | grep OK! | wc -l)
 	nbr_total=0
 	let "nbr_total=$nbr_error+$nbr_ok"
 	res=$(echo "scale=2; $nbr_ok / $nbr_total *100" | bc )
-	
+
 	echo -ne "$BOLD_RED""Error: $nbr_error \t"$RST
 	echo -ne "$BOLD_GREEN""OK: $nbr_ok  \t"$RST
 	echo -ne "number of files: $BOLD_WHITE$nbr_total    \t\t"$RST
@@ -364,7 +409,7 @@ function poush_42()
 		save=$(pwd)
 		cd ~/42
 		# cp ~/.config/Code/User/snippets/c.json .
-		# cp ~/.config/Code/User/snippets/shellscript.json . 
+		# cp ~/.config/Code/User/snippets/shellscript.json .
 		# cp -f ~/.shortcut .
 		git status
 		sleep 1.5
@@ -393,8 +438,8 @@ function pull_42()
 		cd ~/42
 		git pull
 	fi
-	# cp -f ~/42/c.json ~/.config/Code/User/snippets/ 
-	# cp -f ~/42/shellscript.json ~/.config/Code/User/snippets/ 
+	# cp -f ~/42/c.json ~/.config/Code/User/snippets/
+	# cp -f ~/42/shellscript.json ~/.config/Code/User/snippets/
 }
 
 function cpl()
@@ -476,6 +521,12 @@ function cplc_all()
 		rm -f */*.gch
 	fi
 }
+
+# if [ "${1/-*s}" != $1 ]; then
+# 	$CC -D BUFFER_SIZE=42 *.c *.h */*.c */*.h && $input_file
+# else
+# 	$CC -D BUFFER_SIZE=42 *.c *.h && $input_file
+# fi
 
 # with args
 function refresh()
@@ -563,22 +614,22 @@ function refreshn()
 		nbr_lines=$(tput lines)
 		nbr_lines=$(($nbr_lines-8))
 		nbr_norm=$(normi | wc -l)
-		
+
 		tput clear
 		tput cup 0 0
-		
+
 		echo -e "\t""$BACK_GREEN ----- ----- NORMINETTE ----- ----- $RST"
-		
+
 
 		norminette $1 | grep -vi OK | head -14
 
-		echo "" 
+		echo ""
 		nbr_error=$(norminette $1 | grep -i Error! | wc -l)
 		nbr_ok=$(norminette $1 | grep -i OK! | wc -l)
 		nbr_total=0
 		let "nbr_total=$nbr_error+$nbr_ok"
 		res=$(echo "scale=2; $nbr_ok / $nbr_total *100" | bc )
-		
+
 		echo -ne "$BOLD_RED""Error in $nbr_error files \t"$RST
 		echo -ne "$BOLD_GREEN""OK in $nbr_ok files \t\t"$RST
 		echo -ne "number of files: $BOLD_WHITE$nbr_total    \t"$RST
@@ -608,21 +659,21 @@ function refreshn_test()
 		nbr_lines=$(tput lines)
 		nbr_lines=$(($nbr_lines-8))
 		nbr_norm=$(normi | wc -l)
-		
+
 		tput clear
 		tput cup 0 0
-		
+
 		echo -e "\t""$BACK_GREEN ----- ----- NORMINETTE ----- ----- $RST"
-		
+
 		norminette | grep -vi OK | head -14
 
-		echo "" 
+		echo ""
 		nbr_error=$(norminette | grep -i Error! | grep -vi  | wc -l)
 		nbr_ok=$(norminette | grep -i OK! | grep -vi  | wc -l)
 		nbr_total=0
 		let "nbr_total=$nbr_error+$nbr_ok"
 		res=$(echo "scale=2; $nbr_ok / $nbr_total *100" | bc )
-		
+
 		echo -ne "$BOLD_RED""Error in $nbr_error files \t"$RST
 		echo -ne "$BOLD_GREEN""OK in $nbr_ok files \t\t"$RST
 		echo -ne "number of files: $BOLD_WHITE$nbr_total    \t"$RST
@@ -675,7 +726,7 @@ function crt()
 	if [[ $# == 1 ]]
 	then
 		if [[ ! -d "$1" ]]; then
-			mkdir $1 && cd $1 && code . 
+			mkdir $1 && cd $1 && code .
 		else
 			echo "$1 already exist"
 		fi
@@ -688,7 +739,7 @@ function crtf()
 	if [[ $# == 1 ]]
 	then
 		if [[ ! -f "$1" ]]; then
-			touch $1 && code $1 
+			touch $1 && code $1
 		else
 			echo "$1 already exist"
 		fi
@@ -718,10 +769,10 @@ function is_in()
 
 function is_number()
 {
-	if ! [[ $1 =~ '^[0-9]+$' ]]; 
-	then 
-		echo "error: Not a number" 
-		# >&2; exit 1 
+	if ! [[ $1 =~ '^[0-9]+$' ]];
+	then
+		echo "error: Not a number"
+		# >&2; exit 1
 	fi
 }
 
@@ -775,12 +826,59 @@ function nds()
 	fi
 }
 
+# function ndst()
+# {
+# 	if [[ $# == 1 || $# == 2 ]]; then
+# 		big=$1
+# 		ext_js=".js"
+# 		ext_ts=".ts"
+# 		if [[ "${big/$ext_ts}" == $big ]]
+# 		then
+# 			ext=".ts"
+# 			ts_file=$1$ext
+# 		elif [[ "${big/$ext_js}" == $big ]]
+# 		then
+# 			ext=".js"
+# 			js_file=$1$ext
+# 		else
+# 			file=$1
+# 		fi
+
+# 		if [[ -f $js_file ]]; then
+# 			echo -e "$BOLD_YELLOW$js_file$RST exist and it is launched with $BOLD_GREEN""node$RST"
+# 			if [[ $2 == "-c" ]]; then
+# 				echo -e "and $BOLD_CYAN""vscode$RST"
+# 				code $js_file
+# 			fi
+# 			if [[ "${big/$ext_ts}" == $big ]]
+# 			then
+# 				node $js_file
+# 		else
+# 			echo -e "\n$BOLD_YELLOW$file$RST does not exist, do you want to create it ? $BOLD_YELLOW(0,1,2) (no, js, ts)$RST\n"
+# 			echo -e "$RED(!) Check the path before to answer the question (!)$RST"
+# 			echo -e "$RED--->$RST $(pwd)$RST"
+# 			read answer
+# 			if [[ $answer == "1" || $answer == "2" ]]; then
+# 				touch $file
+# 				echo -e "\t$BOLD_YELLOW$js_file$RST\tcreated"
+# 				if [[ $2 == "-c" ]]; then
+# 					echo -e "$BOLD_YELLOW$js_file$RST is launch with $BOLD_BLUE""node$RST"
+# 					code $js_file
+# 				fi
+# 			else
+# 				echo -e "$BOLD_YELLOW""nothing happened 👒$RST"
+# 			fi
+# 		fi
+# 	else
+# 		echo -e $W_ARGS
+# 	fi
+# }
 
 function rmv()
 {
 	if [[ $# == 1 ]]; then
 		if echo $1 | grep -q '*'; then
-			echo 
+			echo
 		else
 			if [[ -f $1 ]]
 			then
@@ -804,7 +902,7 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
-					echo "rm -f $1"
+					echo -e $RED"/usr/bin/rm -f $1"$RST
 					/usr/bin/rm -f "$1"
 				else
 					echo -e $NOTHING
@@ -832,13 +930,13 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
-					echo "rm -rf $1"
+					echo -e $RED"/usr/bin/rm -rf $1"$RST
 					/usr/bin/rm -rf "$1"
 				else
 					echo -e $NOTHING
 				fi
 				echo
-			else 
+			else
 				# echo "$1 is not a file or a directory, are you sure to delete it ?"
 				echo -e "   $BOLD_WHITE~~$RST $1 is not a file or a directory $BOLD_WHITE~~$RST"
 				echo -e "\t$BOLD_WHITE~~$RST are you sure to delete it ? $BOLD_WHITE~~$RST"
@@ -857,9 +955,24 @@ function rmv()
 	fi
 }
 
+# function too_much_time_time_to_reboot()
+# {
+
+# }
+
+function before()
+{
+	cat save.h > ft_philo.h
+}
+
 function hcreate()
 {
-	folder=$(basename $PWD)
+	if [[ $# == 1 ]]
+	then
+		folder=$1
+	else
+		folder=$(basename $PWD)
+	fi
 	header_file="ft_$folder"".h"
 	header_name="FT_$(echo $folder | tr a-z A-Z)""_H"
 	date_ymd=$(date +%Y/%m/%d)
@@ -881,10 +994,10 @@ function hcreate()
 		then
 			# IFS=$'\n'
 			# save_struct=( $(sed -n '/typedef/{p;};x' $header_file) )
-			
+
 			# IFS=$'\n'
 			# end_arr=( $(cat $header_file | grep -on --color=never "}") )
-			
+
 			# start_struct=$(cat $header_file | grep -on --color=never typedef | head -1 | awk -F ':' '{print $1}')
 			# last_struct=$(cat $header_file | grep -on --color=never typedef | tail -n 1 | awk -F ':' '{print $1}')
 			# for val2 in "${end_arr[@]}";
@@ -999,6 +1112,7 @@ function hcreate()
 	echo "# include <errno.h>" >> $header_file
 	echo "# include <fcntl.h>" >> $header_file
 	echo "# include <limits.h>" >> $header_file
+	echo "# include <pthread.h>" >> $header_file
 
 	echo "# include <sys/types.h>" >> $header_file
 	echo "# include <sys/time.h>" >> $header_file
@@ -1010,6 +1124,7 @@ function hcreate()
 	echo "# include <signal.h>" >> $header_file
 	echo "# include <stdarg.h>" >> $header_file
 	echo "# include <stddef.h>" >> $header_file
+	echo "# include <stdarg.h>" >> $header_file
 	echo "# include <stdio.h>" >> $header_file
 	echo "# include <stdlib.h>" >> $header_file
 	echo "# include <string.h>" >> $header_file
@@ -1020,6 +1135,7 @@ function hcreate()
 	echo "# include <readline/history.h>" >> $header_file
 
 	echo "" >> $header_file
+
 	##### save_include #####
 	if [[ $save_include != "nothing" ]]
 	then
@@ -1047,7 +1163,8 @@ function hcreate()
 	fi
 	echo "" >> $header_file
 	##### end_place_define #####
-	
+
+	struct_type=()
 	##### save struct #####
 	if [[ $save_struct != "nothing" ]]
 	then
@@ -1057,10 +1174,22 @@ function hcreate()
 			then
 				echo -e "\n$val" >> $header_file
 			else
+				if [[ $val == *"}"* ]]
+				then
+					res=`echo $val | tr -d '\t' | tr -d '}' | tr -d ';'`
+					if [[ "$res" =~ [A-Za-z] ]]; then
+						# echo $res
+						struct_type+=( "$res" )
+					fi
+				fi
 				echo "$val" >> $header_file
 			fi
 		done
 	fi
+	# if [[ ${#struct_type[@]} -eq 0 ]]
+	# then
+	# 	printf "struct_type array is empty\n"
+	# fi
 	echo "" >> $header_file
 	##### end_place_struct #####
 
@@ -1106,6 +1235,13 @@ function hcreate()
 		echo "error detected (script continue)"
 		# echo "two function main(... detected"
 	fi
+
+
+	#---- a faire : find max length of all type present -> define number of tab for each type (basics + struct)----#
+
+
+
+	# norm with type in header
 	sed -i '/static /d' $header_file
 	sed -i '/main(/d' $header_file
 	sed -i 's/\.\//\/\//' $header_file
@@ -1120,13 +1256,27 @@ function hcreate()
 	sed -i ':a;N;$!ba;s/\nunsigned\ char\ /\nunsigned\ char\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nlong\ long\ int\ /\nlong\ long\ int\t/g' $header_file
 
+	for val in "${struct_type[@]}";
+	do
+		start="\n$val\ "
+		end="${start}"
+		res="sed -i '"
+		res=$res':a;N;$!ba;s/'
+		res=$res$start
+		res=$res"/"
+		res=$res"\n$val\t"
+		res=$res"/g' $header_file"
+		echo $res >> "$PWD/sh.sh"
+		echo "" >> "$PWD/sh.sh"
+	done
+	source "$PWD/sh.sh"
+	/usr/bin/rn "$PWD/sh.sh"
+
+
 	echo "" >> $header_file
 	echo -n "#endif" >> $header_file
-
-	# code $header_file
-
-	#---- a faire : save new include when added ----#
 }
+
 
 function vlg()
 {
@@ -1315,7 +1465,7 @@ function print_title()
 	escp="\e["
 	wrt=";3"
 	echo -e $escp"2"$wrt$2"m>"$escp"0"$wrt$2"m>"$escp"1"$wrt$2"m>" $1 $escp"1"$wrt$2"m<"$escp"0"$wrt$2"m<"$escp"2"$wrt$2"m<$RST"
-	# echo -e "\e[2;3$2m"">""\e[0;3$2m"">""\e[1;3$2m"">" $1 "\e[1;3$2m""<""\e[0;3$2m""<""\e[2;3$2m""<$RST" 
+	# echo -e "\e[2;3$2m"">""\e[0;3$2m"">""\e[1;3$2m"">" $1 "\e[1;3$2m""<""\e[0;3$2m""<""\e[2;3$2m""<$RST"
 
 }
 
@@ -1332,7 +1482,7 @@ function search()
 			echo -e $BACK_RED" $(grep -riIon $1 | wc -l) results, expected : 1 "$RST
 			echo -e "\nsearch again for 1 result"
 			echo -n "$> "
-			read answer 
+			read answer
 			echo ""
 			search $answer
 			# b="$(tr -d \\033 $a :$1)"
@@ -1371,17 +1521,17 @@ function size()
 	# res=$(printf "%b" "$(sudo du -shc $(pwd)/* | sort -n)")
 	# echo $res
 	echo -e "size in $RED K $RST"
-	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /K/) {print $1,$2}}' 
+	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /K/) {print $1,$2}}'
 	echo
 	echo -e "size in $RED M $RST"
-	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /M/) {print $1,$2}}' 
+	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /M/) {print $1,$2}}'
 	echo
 	echo -e "size in $RED G $RST"
-	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /G/) {print $1,$2}}' 
+	sudo du -shc $(pwd)/* | sort -n | awk '{ if ($1 ~ /G/) {print $1,$2}}'
 	echo
 }
 
-function norm_file()
+function onorm_file()
 {
 	IFS=$'\n'
 	toggle=1
@@ -1391,6 +1541,7 @@ function norm_file()
 	do
 		if [[ $val != "--" ]]
 		then
+			echo $val
 			if [[ $toggle == 1 ]]
 			then
 				str=$(echo -n $val | awk '{print $1}')
@@ -1401,6 +1552,55 @@ function norm_file()
 				toggle=1
 				str=( $(echo $str | tr -d ' ') )
 				code -g $str
+				echo
+			fi
+		fi
+	done
+}
+
+function norm_file()
+{
+	IFS=$'\n'
+	toggle=2
+	str=''
+	glb=0
+	array=( $(norminette $1 | grep Error! -A 2 --color=never) )
+	for val in "${array[@]}"
+	do
+		if [[ $val != "--" ]]
+		then
+			if [[ $toggle == 2 ]]
+			then
+				echo $val
+				str=$(echo -n $val | awk '{print $1}')
+				# | tr 'Error!' ' '
+				toggle=1
+			elif [[ $toggle == 1 ]]
+			then
+				if echo $val | grep -q GLOBAL_VAR_DETECTED;
+				then
+					glb=1
+				else
+					echo $val
+					str+=$(echo $val | awk '{print $4}' | tr ',' ' ')
+					str=( $(echo $str | tr -d ' ') )
+					code -g $str
+					echo
+				fi
+				toggle=0
+
+			else
+				if [[ $glb == 1 ]]
+				then
+					echo $val
+					str+=$(echo $val | awk '{print $4}' | tr ',' ' ')
+					toggle=0
+					str=( $(echo $str | tr -d ' ') )
+					code -g $str
+					echo
+					glb=0
+				fi
+				toggle=2
 			fi
 		fi
 	done
@@ -1419,6 +1619,7 @@ function pyramid()
 	# echo -e "egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call"
 	# make CFLAGS=
 	echo "in makefile: -fdump-rtl-expand"
+	make re CFLAGS=-fdump-rtl-expand
 	egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call
 }
 
@@ -1461,7 +1662,7 @@ function msearch()
 		IFS='\n'
 		res=$(grep -rion $1 --exclude-dir=".git" --color=never --binary-files=without-match)
 		res=($res)
-		
+
 		echo ${#res[@]}
 		if [[ $(echo ${res[@]} | wc -l) -eq 1 ]]
 		then
@@ -1492,3 +1693,25 @@ function msearch()
 		echo -e $W_ARGS
 	fi
 }
+
+function cnct()
+{
+	nmcli dev wifi connect "Galaxy A13FB27" --ask
+}
+
+#	code grep file:line with error compile
+
+# m4 precompile header
+
+#define malloc(...) NULL
+
+#define prinT(str, __VA_ARG__)\
+	#ifdef TEST\
+		# printf(str, ##VA_ARG);\
+	#endif\
+
+# 🐒🏴‍☠🍖
+# 🏴 ☠️
+# 👒⚔🏴‍☠️🌊
+# 🐲
+# 🦈function select_option {
