@@ -38,7 +38,7 @@ PRPT() {
 	then
 		echo "$line1\n$line2$files_folder\n$line3"
 	else
-		echo "$w_line1\n$line2$w_files_folder\n$w_line3"	
+		echo "$w_line1\n$line2$w_files_folder\n$w_line3"
 	fi
 }
 

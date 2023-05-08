@@ -149,10 +149,9 @@ export W_ARGS="$RED""wrong numbers of args$RST"
 SLEEP=2
 
 # alias norminette='norminette -R CheckForbiddenSourceHeader'
-alias norm='norminette | grep -vi ok'
 # alias norminette='norminette | awk '\''{gsub(/OK/,"\033[1;32mOK\033[0m");}1'\'' | awk '\''{gsub(/Error!/,"\033[1;31mError!\033[0m");}1'\'
+alias norm='norminette | grep -vi ok'
 alias gcw='gcc -Wall -Wextra -Werror -g'
-alias out='./a.out'
 
 alias gcl='git clone'
 
@@ -170,64 +169,6 @@ shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
 exe_name="pipex"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
-
-function select_option {
-
-    # little helpers for terminal print control and key input
-    ESC=$( printf "\033")
-    cursor_blink_on()  { printf "$ESC[?25h"; }
-    cursor_blink_off() { printf "$ESC[?25l"; }
-    cursor_to()        { printf "$ESC[$1;${2:-1}H"; }
-    print_option()     { printf "   $1 "; }
-    print_selected()   { printf "  $ESC[7m $1 $ESC[27m"; }
-    get_cursor_row()   { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
-    key_input()        { read -s -n3 key 2>/dev/null >&2
-                         if [[ $key = $ESC[A ]]; then echo up;    fi
-                         if [[ $key = $ESC[B ]]; then echo down;  fi
-                         if [[ $key = ""     ]]; then echo enter; fi; }
-
-    # initially print empty new lines (scroll down if at bottom of screen)
-    for opt; do printf "\n"; done
-
-    # determine current screen position for overwriting the options
-    local lastrow=`get_cursor_row`
-    local startrow=$(($lastrow - $#))
-
-    # ensure cursor and input echoing back on upon a ctrl+c during read -s
-    trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
-    cursor_blink_off
-
-	local selected=0
-	while true; do
-		# print options by overwriting the last lines
-		local idx=0
-		for opt; do
-			cursor_to $(($startrow + $idx))
-			if [ $idx -eq $selected ]; then
-				print_selected "$opt"
-			else
-				print_option "$opt"
-			fi
-			((idx++))
-		done
-
-		# user key control
-		case `key_input` in
-			enter) break;;
-			up)    ((selected--));
-					if [ $selected -lt 0 ]; then selected=$(($# - 1)); fi;;
-			down)  ((selected++));
-					if [ $selected -ge $# ]; then selected=0; fi;;
-		esac
-	done
-
-    # cursor position back to normal
-    cursor_to $lastrow
-    printf "\n"
-    cursor_blink_on
-
-    return $selected
-}
 
 function ld()
 {
@@ -299,34 +240,39 @@ function cfg()
 function cfga()
 {
 	if [[ $shell_name == "zsh" ]]; then
-		if [ -f "/mnt/nfs/homes/ggosse/.zshrc" ]; then
+		if [ -f "/mnt/nfs/homes/$USER/.zshrc" ]; then
 			code ~/.zshrc
 		fi
-		if [ -f "/home/gael/.zshrc" ]; then
+		if [ -f "/home/$USER/.zshrc" ]; then
 			code ~/.zshrc
 		fi
 	fi
 	if [[ $shell_name == "bash" ]]; then
-		if [ -f "/mnt/nfs/homes/ggosse/.bashrc" ]; then
+		if [ -f "/mnt/nfs/homes/$USER/.bashrc" ]; then
 			code ~/.bashrc
 		fi
-		if [ -f "/home/gael/.bashrc" ]; then
+		if [ -f "/home/$USER/.bashrc" ]; then
 			code ~/.bashrc
 		fi
 	fi
 	code ~/save_shortcut/.shortcut
 }
 
+function cfg()
+{
+	code ~/.shortcut
+}
+
 function start()
 {
 	if [[ $shell_name == "zsh" ]]; then
-		if [ -f "/mnt/nfs/homes/ggosse/.zshrc" ]; then
+		if [ -f "/mnt/nfs/homes/$USER/.zshrc" ]; then
 			source ~/.zshrc
 			echo
 			echo -e "\t "$BACK_CYAN" ZSH is restarted "$RST
 			echo
 		fi
-		if [ -f "/home/gael/.zshrc" ]; then
+		if [ -f "/home/$USER/.zshrc" ]; then
 			source ~/.zshrc
 			echo
 			echo -e "\t "$BACK_CYAN" ZSH is restarted "$RST
@@ -334,13 +280,13 @@ function start()
 		fi
 	fi
 	if [[ $shell_name == "bash" ]]; then
-		if [ -f "/mnt/nfs/homes/ggosse/.bashrc" ]; then
+		if [ -f "/mnt/nfs/homes/$USER/.bashrc" ]; then
 			source ~/.bashrc
 			echo
 			echo -e "\t "$BACK_CYAN" BASH is restarted "$RST
 			echo
 		fi
-		if [ -f "/home/gael/.bashrc" ]; then
+		if [ -f "/home/$USER/.bashrc" ]; then
 			source ~/.bashrc
 			echo
 			echo -e "\t "$BACK_CYAN" BASH is restarted "$RST
@@ -1392,24 +1338,6 @@ function vstat()
 	fi
 }
 
-function not_installed()
-{
-	# if [[ $# == 1 ]]
-	# then
-	# 	pacman -Ssq | egrep -v \'$(pacman -Q | cut -d ' ' -f 1 | tr '\n' '|')\'
-	# else
-	# 	pacman -Ssq | egrep -v \'$(pacman -Q | cut -d ' ' -f 1 | tr '\n' '|')\' | gre
-	# fi
-	if [[ $# == 1 ]]
-	then
-		installed=$(pacman -Q | cut -d ' ' -f 1 | tr '\n' '|')
-		pacman -Ssq | grep -Ev \'${installed}\' | grep -i $1
-	else
-		installed=$(pacman -Q | cut -d ' ' -f 1 | tr '\n' '|')
-		pacman -Ssq | egrep -v \'${installed}\'
-	fi
-}
-
 function scan()
 {
 	compile=0
@@ -1654,6 +1582,275 @@ function kill_task()
 	fi
 }
 
+function end()
+{
+	date;
+	# git status;
+	sleep 0.5;
+	pkill --oldest chrome;
+	sleep 0.5;
+	pkill --oldest chrome;
+	sleep 0.5;
+	pkill --oldest Discord;
+	sleep 0.5;
+	pkill --newest code;
+	sleep 0.5;
+	pkill --oldest code;
+	sleep 0.5;
+	pkill --oldest bash;
+	sleep 0.5;
+	pkill --oldest bash;
+	sleep 0.5;
+	pkill --oldest bash;
+	ft_lock;
+}
+
+function end_work()
+{
+	if [[ $# == 0 ]]; then
+		echo "missing arg(s)";
+	else
+		message="$1"
+		date
+		git status
+		echo
+		echo -e $BOLD_BLACK$BACK_GREEN" Poush $RESET$BOLD_WHITE $1"$RESET
+		echo
+		sleep 2
+		if git add . 2>&1 | grep -iqo denied --color=never
+		then
+			echo -e $RED"something wrong : git add ."$RST
+			return 0;
+		fi
+		echo -e $CYAN"stop"$RST
+		git commit -m $message
+		if git push 2>&1 | grep -iqo denied --color=never
+		then
+			echo -e $RED"something wrong with $BOLD_RED git push"$RST
+			return 0;
+		fi
+		echo
+		echo -e $BOLD_BLACK$BACK_GREEN" End poush $RESET$BOLD_WHITE $1"$RESET
+		echo
+		git status
+		sleep 0.5
+		pkill --oldest chrome
+		sleep 0.5
+		pkill --oldest chrome
+		sleep 0.5
+		pkill --oldest Discord
+		sleep 0.5
+		pkill --oldest bash
+		sleep 0.5
+		pkill --oldest bash
+		sleep 0.5
+		pkill --oldest bash
+		sleep 0.5
+		pkill --oldest obs
+		sleep 0.5
+		pkill --oldest obsidian
+		sleep 0.5
+		pkill --newest code
+		sleep 0.5
+		pkill --oldest code
+		ft_lock
+	fi
+}
+
+function act()
+{
+	complete -d /mnt/nfs/homes/$USER/42/cursus/ && cd ~/42/cursus/$1
+}
+
+function work()
+{
+	if [ -z $1 ]; then
+		echo "first arg missing";
+	else
+		cd;
+		cd 42;
+		git pull;
+		cd ~/42/cursus/$1 && code . && sleep 3 && google-chrome;
+	fi
+}
+
+function brgt()
+{
+	LEVEL=$1;
+	if [[ $LEVEL -gt 100 ]]; then
+		echo -e $SYNTAX;
+		exit 1;
+	fi;
+	if [[ $LEVEL -lt 0 ]]; then
+		echo -e $SYNTAX;
+		exit 1;
+	fi;
+	brightness_level="$(( LEVEL / 100 )).$(( LEVEL % 100 ))";
+	screenname=$(xrandr | grep " connected" | cut -f1 -d" ");
+	echo "$(xrandr --output $screenname --brightness $brightness_level)"
+}
+
+function low()
+{
+	if [[ $1 == "clr" ]]; then
+		xrandr --output HDMI-2 --gamma 1:1:1 --brightness 0.5 || xrandr --output DP-1 --gamma 1:1:1 --brightness 0.5 || xrandr --output DP-2 --gamma 1:1:1 --brightness 0.5 || xrandr --output DP-3 --gamma 1:1:1 --brightness 0.5 || xrandr --output DP-4 --gamma 1:1:1 --brightness 0.5;
+	else
+		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness 0.5 || xrandr --output DP-1 --gamma 1:0.8:0.6 --brightness 0.5 || xrandr --output DP-2 --gamma 1:0.8:0.6 --brightness 0.5 || xrandr --output DP-3 --gamma 1:0.8:0.6 --brightness 0.5 || xrandr --output DP-4 --gamma 1:0.8:0.6 --brightness 0.5;
+	fi
+}
+
+function mid()
+{
+	if [[ $1 == "clr" ]]; then
+		xrandr --output HDMI-2 --gamma 1:1:1 --brightness 0.7 || xrandr --output DP-1 --gamma 1:1:1 --brightness 0.7 || xrandr --output DP-2 --gamma 1:1:1 --brightness 0.7 || xrandr --output DP-3 --gamma 1:1:1 --brightness 0.7 || xrandr --output DP-4 --gamma 1:1:1 --brightness 0.7;
+	else
+		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness 0.7 || xrandr --output DP-1 --gamma 1:0.8:0.6 --brightness 0.7 || xrandr --output DP-2 --gamma 1:0.8:0.6 --brightness 0.7 || xrandr --output DP-3 --gamma 1:0.8:0.6 --brightness 0.7 || xrandr --output DP-4 --gamma 1:0.8:0.6 --brightness 0.7;
+	fi
+}
+
+function high()
+{
+	if [[ $1 == "clr" ]]; then
+		xrandr --output HDMI-2 --gamma 1:1:1 --brightness 1 || xrandr --output DP-1 --gamma 1:1:1 --brightness 1 || xrandr --output DP-2 --gamma 1:1:1 --brightness 1 || xrandr --output DP-3 --gamma 1:1:1 --brightness 1 || xrandr --output DP-4 --gamma 1:1:1 --brightness 0.9;
+	else
+		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-1 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-2 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-3 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-4 --gamma 1:0.8:0.6 --brightness 0.9;
+	fi
+}
+
+function commit()
+{
+	if [[ $# == 0 ]]; then
+		echo "missing arg(s)";
+	else
+		message="$1";
+		date;
+		save=$(pwd)
+		git status;
+		echo;
+		echo -e $BOLD_BLACK$BACK_GREEN" Commit $RESET$BOLD_WHITE $1"$RESET;
+		echo;
+		sleep 2;
+		if git add . 2>&1 | grep -iqo denied --color=never
+		then
+			echo -e $RED"something wrong : git add ."$RST
+			return 0;
+		fi
+		echo -e $CYAN"stop"$RST
+		git commit -m $message
+		echo;
+		echo -e $BOLD_BLACK$BACK_GREEN" End Commit $RESET$BOLD_WHITE $1"$RESET;
+		echo;
+		git status;
+		cd $save
+	fi
+}
+
+function endlate()
+{
+	if [[ $# == 0 ]]; then
+		echo "missing arg(s)";
+	else
+		message="$1";
+		date;
+		git status;
+		echo;
+		echo -e $BOLD_BLACK$BACK_GREEN" Poush $RESET$BOLD_WHITE $1"$RESET;
+		echo;
+		sleep 1.5;
+		if git add . 2>&1 | grep -iqo denied --color=never
+		then
+			echo -e $RED"something wrong : git add ."$RST
+			git add .
+			return 0;
+		fi
+		git commit -m $message
+		if git push 2>&1 | grep -iqo denied --color=never
+		then
+			echo -e $RED"something wrong with $BOLD_RED git push"$RST
+			git push
+			return 0;
+		fi
+		echo;
+		echo -e $BOLD_BLACK$BACK_GREEN" End poush $RESET$BOLD_WHITE $1"$RESET;
+		echo;
+		git status;
+		sleep 0.25;
+		pkill --oldest chrome;
+		sleep 0.25;
+		pkill --oldest chrome;
+		sleep 0.25;
+		pkill --oldest Discord;
+		sleep 0.25;
+		pkill --oldest bash;
+		sleep 0.25;
+		pkill --oldest bash;
+		sleep 0.25;
+		pkill --oldest bash;
+		sleep 0.25;
+		pkill --oldest gnome-shell;
+		sleep 0.25;
+		pkill --oldest code;
+	fi
+}
+
+function select_option() {
+
+	# little helpers for terminal print control and key input
+	ESC=$( printf "\033")
+	cursor_blink_on()  { printf "$ESC[?25h"; }
+	cursor_blink_off() { printf "$ESC[?25l"; }
+	cursor_to()        { printf "$ESC[$1;${2:-1}H"; }
+	print_option()     { printf "   $1 "; }
+	print_selected()   { printf "  $ESC[7m $1 $ESC[27m"; }
+	get_cursor_row()   { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
+	key_input()        { read -s -n3 key 2>/dev/null >&2
+						if [[ $key = $ESC[A ]]; then echo up;    fi
+						if [[ $key = $ESC[B ]]; then echo down;  fi
+						if [[ $key = ""     ]]; then echo enter; fi; }
+
+	# initially print empty new lines (scroll down if at bottom of screen)
+	for opt; do printf "\n"; done
+
+	# determine current screen position for overwriting the options
+	local lastrow=`get_cursor_row`
+	local startrow=$(($lastrow - $#))
+
+	# ensure cursor and input echoing back on upon a ctrl+c during read -s
+	trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
+	cursor_blink_off
+
+	local selected=0
+	while true; do
+		# print options by overwriting the last lines
+		local idx=0
+		for opt; do
+			cursor_to $(($startrow + $idx))
+			if [ $idx -eq $selected ]; then
+				print_selected "$opt"
+			else
+				print_option "$opt"
+			fi
+			((idx++))
+		done
+
+		# user key control
+		case `key_input` in
+			enter) break;;
+			up)    ((selected--));
+				if [ $selected -lt 0 ]; then selected=$(($# - 1)); fi;;
+			down)  ((selected++));
+				if [ $selected -ge $# ]; then selected=0; fi;;
+		esac
+	done
+
+	# cursor position back to normal
+	cursor_to $lastrow
+	printf "\n"
+	cursor_blink_on
+
+	return $selected
+}
+
 function msearch()
 {
 	if [[ $# == 1 ]]
@@ -1693,24 +1890,3 @@ function msearch()
 	fi
 }
 
-function cnct()
-{
-	nmcli dev wifi connect "Galaxy A13FB27" --ask
-}
-
-#	code grep file:line with error compile
-
-# m4 precompile header
-
-#define malloc(...) NULL
-
-#define prinT(str, __VA_ARG__)\
-	#ifdef TEST\
-		# printf(str, ##VA_ARG);\
-	#endif\
-
-# 🐒🏴‍☠🍖
-# 🏴 ☠️
-# 👒⚔🏴‍☠️🌊
-# 🐲
-# 🦈function select_option {
