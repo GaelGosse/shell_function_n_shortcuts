@@ -1237,8 +1237,7 @@ function hcreate()
 	fi
 
 
-	#---- a faire : find max length of all type present -> define number of tab for each type (basics + struct)----#
-
+	#---- a faire : find max length of all type present -> define number of tab for each type (basics + struct) for norm ----#
 
 
 	# norm with type in header
