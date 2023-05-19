@@ -12,10 +12,12 @@
 #		 !! = the previous command line
 
 ##### COLORS #####
+
 function mini()
 {
-	cmd="cd ~/minishell && clear && hcreate"
+	cmd="cd ~/mini_mael/minishell/minishell && clear "
 
+	h=""
 	m=""
 	g=""
 	v=""
@@ -28,6 +30,10 @@ function mini()
 			echo -e $RED"something wrong"$RST
 			exit 0
 		fi
+		if [[ "${1/'h'}" != $1 ]]
+		then
+			h=" && hcreate "
+		fi
 		if [[ "${1/'m'}" != $1 ]]
 		then
 			m=" && make re"
@@ -36,7 +42,7 @@ function mini()
 		fi
 		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
 		then
-			v="valgrind --suppressions=./.readline.supp --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes --log-file='filename.erl'"
+			v="valgrind --suppressions=./leak.txt --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes "
 		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
 		then
 			g="gdb"
@@ -44,12 +50,42 @@ function mini()
 	fi
 	if [[ $# == 1 ]]
 	then
-		total=$cmd$m" && clear && "$v$g" ./minishell"
+		total=$cmd$h$m" && clear && "$v$g" ./minishell"
 		eval $total
+		echo
+		echo $total
+		echo
 	elif [[ $# == 2 ]]
 	then
-		total=$cmd$m" && clear && echo -e \"$2\" | "$v$g" ./minishell"
+		total=$cmd$h$m" && clear && echo -e \"$2\" | "$v$g" ./minishell"
 		eval $total
+		echo
+		echo $total
+		echo
+	elif [[ $# == 0 ]]
+	then
+		total=$cmd" && make && ./minishell "
+		eval $total
+	fi
+}
+
+function osco()
+{
+	if [[ $# == 1 ]]
+	then
+		cd ~/osco_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
+	else
+		cd ~/osco_sh && make && ./minishell
+	fi
+}
+
+function mathieu()
+{
+	if [[ $# == 1 ]]
+	then
+		cd ~/mathieu_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
+	else
+		cd ~/mathieu_sh && make && ./minishell
 	fi
 }
 
@@ -122,13 +158,15 @@ alias gcl='git clone'
 alias ..='cd ..'
 alias c='clear'
 alias l='ls'
-alias echo='echo -e '
-alias grep='grep --color=always'
+alias grep='grep --color=always --binary-files=without-match'
 alias env+='env -0 | sort -z | tr "\0" "\n"'
 
+# alias set_rc='cp -f ~/42/.shortcut ~/.'
+# alias get_rc='cp -f ~/.shortcut ~/42/.'
 
 shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
-exe_name="a.out"
+# shell_name=$(ps -ef | grep $$ | grep -v grep | head -1 | awk '{print $8}')
+exe_name="pipex"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
 
@@ -182,6 +220,21 @@ function updt()
 	else
 		echo -e $BOLD_WHITE"-----   music up to date   -----"$RST
 	fi
+}
+
+function cron_edit()
+{
+	code ~/.updt.sh
+	echo "for more: "
+	echo "crontab -e"
+}
+
+function cfg()
+{
+	code ~/save_shortcut/.shortcut
+	# a=$(pwd)
+	# cd ~/42 && code 42/.shortcut
+	# cd $a
 }
 
 function cfga()
@@ -414,6 +467,12 @@ function cplc_all()
 		rm -f */*.gch
 	fi
 }
+
+# if [ "${1/-*s}" != $1 ]; then
+# 	$CC -D BUFFER_SIZE=42 *.c *.h */*.c */*.h && $input_file
+# else
+# 	$CC -D BUFFER_SIZE=42 *.c *.h && $input_file
+# fi
 
 # with args
 function refresh()
@@ -713,6 +772,53 @@ function nds()
 	fi
 }
 
+# function ndst()
+# {
+# 	if [[ $# == 1 || $# == 2 ]]; then
+# 		big=$1
+# 		ext_js=".js"
+# 		ext_ts=".ts"
+# 		if [[ "${big/$ext_ts}" == $big ]]
+# 		then
+# 			ext=".ts"
+# 			ts_file=$1$ext
+# 		elif [[ "${big/$ext_js}" == $big ]]
+# 		then
+# 			ext=".js"
+# 			js_file=$1$ext
+# 		else
+# 			file=$1
+# 		fi
+
+# 		if [[ -f $js_file ]]; then
+# 			echo -e "$BOLD_YELLOW$js_file$RST exist and it is launched with $BOLD_GREEN""node$RST"
+# 			if [[ $2 == "-c" ]]; then
+# 				echo -e "and $BOLD_CYAN""vscode$RST"
+# 				code $js_file
+# 			fi
+# 			if [[ "${big/$ext_ts}" == $big ]]
+# 			then
+# 				node $js_file
+# 		else
+# 			echo -e "\n$BOLD_YELLOW$file$RST does not exist, do you want to create it ? $BOLD_YELLOW(0,1,2) (no, js, ts)$RST\n"
+# 			echo -e "$RED(!) Check the path before to answer the question (!)$RST"
+# 			echo -e "$RED--->$RST $(pwd)$RST"
+# 			read answer
+# 			if [[ $answer == "1" || $answer == "2" ]]; then
+# 				touch $file
+# 				echo -e "\t$BOLD_YELLOW$js_file$RST\tcreated"
+# 				if [[ $2 == "-c" ]]; then
+# 					echo -e "$BOLD_YELLOW$js_file$RST is launch with $BOLD_BLUE""node$RST"
+# 					code $js_file
+# 				fi
+# 			else
+# 				echo -e "$BOLD_YELLOW""nothing happened 👒$RST"
+# 			fi
+# 		fi
+# 	else
+# 		echo -e $W_ARGS
+# 	fi
+# }
 
 function rmv()
 {
@@ -742,7 +848,7 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
-					echo "rm -f $1"
+					echo -e $RED"/usr/bin/rm -f $1"$RST
 					/usr/bin/rm -f "$1"
 				else
 					echo -e $NOTHING
@@ -770,7 +876,7 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
-					echo "rm -rf $1"
+					echo -e $RED"/usr/bin/rm -rf $1"$RST
 					/usr/bin/rm -rf "$1"
 				else
 					echo -e $NOTHING
@@ -793,6 +899,44 @@ function rmv()
 	else
 		echo -e $W_ARGS
 	fi
+}
+
+# function too_much_time_time_to_reboot()
+# {
+
+# }
+
+function before()
+{
+	cat save.h > ft_philo.h
+}
+
+function t46()
+{
+	FILE=$PWD"/.folder_ignore"
+	if test -f "$FILE"; then
+		echo ".folder_ignore exists."
+		echo
+	else
+		echo "Which folder do you want to exclude from hcreate ? (end)"
+		answer=""
+		while [[ $answer != "end" ]]
+		do
+			read -a answer
+			if [[ $answer != "end" ]]
+			then
+				echo $answer >> $FILE
+			fi
+		done
+		touch $FILE
+	fi
+	readarray -t abc < $FILE
+	for val in "${abc[@]}";
+	do
+		echo $val
+		echo "---"
+	done
+	echo "------"
 }
 
 function hcreate()
@@ -1097,6 +1241,7 @@ function hcreate()
 	echo -n "#endif" >> $header_file
 }
 
+
 function vlg()
 {
 	echo -e $BOLD_WHITE"\tvalgrind"$RST
@@ -1332,7 +1477,7 @@ function size()
 	echo
 }
 
-function norm_file()
+function onorm_file()
 {
 	IFS=$'\n'
 	toggle=1
@@ -1342,6 +1487,7 @@ function norm_file()
 	do
 		if [[ $val != "--" ]]
 		then
+			echo $val
 			if [[ $toggle == 1 ]]
 			then
 				str=$(echo -n $val | awk '{print $1}')
@@ -1352,6 +1498,55 @@ function norm_file()
 				toggle=1
 				str=( $(echo $str | tr -d ' ') )
 				code -g $str
+				echo
+			fi
+		fi
+	done
+}
+
+function norm_file()
+{
+	IFS=$'\n'
+	toggle=2
+	str=''
+	glb=0
+	array=( $(norminette $1 | grep Error! -A 2 --color=never) )
+	for val in "${array[@]}"
+	do
+		if [[ $val != "--" ]]
+		then
+			if [[ $toggle == 2 ]]
+			then
+				echo $val
+				str=$(echo -n $val | awk '{print $1}')
+				# | tr 'Error!' ' '
+				toggle=1
+			elif [[ $toggle == 1 ]]
+			then
+				if echo $val | grep -q GLOBAL_VAR_DETECTED;
+				then
+					glb=1
+				else
+					echo $val
+					str+=$(echo $val | awk '{print $4}' | tr ',' ' ')
+					str=( $(echo $str | tr -d ' ') )
+					code -g $str
+					echo
+				fi
+				toggle=0
+
+			else
+				if [[ $glb == 1 ]]
+				then
+					echo $val
+					str+=$(echo $val | awk '{print $4}' | tr ',' ' ')
+					toggle=0
+					str=( $(echo $str | tr -d ' ') )
+					code -g $str
+					echo
+					glb=0
+				fi
+				toggle=2
 			fi
 		fi
 	done
@@ -1370,6 +1565,7 @@ function pyramid()
 	# echo -e "egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call"
 	# make CFLAGS=
 	echo "in makefile: -fdump-rtl-expand"
+	make re CFLAGS=-fdump-rtl-expand
 	egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call
 }
 
