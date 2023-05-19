@@ -207,7 +207,7 @@ function cfga()
 
 function cfg()
 {
-	code ~/.shortcut
+	code ~/shell_function_n_shortcuts/.shortcut
 }
 
 function start()
@@ -795,9 +795,59 @@ function rmv()
 	fi
 }
 
+function t46()
+{
+	FILE=$PWD"/.folder_ignore"
+	if test -f "$FILE"; then
+		echo ".folder_ignore exists."
+		echo
+	else
+		echo "Which folder do you want to exclude from hcreate ? (end)"
+		answer=""
+		while [[ $answer != "end" ]]
+		do
+			read -a answer
+			if [[ $answer != "end" ]]
+			then
+				echo $answer >> $FILE
+			fi
+		done
+		touch $FILE
+	fi
+	readarray -t abc < $FILE
+	for val in "${abc[@]}";
+	do
+		echo $val
+		echo "---"
+	done
+	echo "------"
+}
+
 function hcreate()
 {
-	folder=$(basename $PWD)
+	FILE=$PWD"/.folder_ignore"
+	if test -f "$FILE"; then
+		echo "$FILE exists."
+	else
+		echo "Which folder do you want to exclude from hcreate ? (end)"
+		answer=""
+		while [[ $answer != "end" ]]
+		do
+			read -a answer
+			if [[ $answer != "end" ]]
+			then
+				echo $answer >> $FILE
+			fi
+		done
+		touch $FILE
+	fi
+	return ;
+	if [[ $# == 1 ]]
+	then
+		folder=$1
+	else
+		folder=$(basename $PWD)
+	fi
 	header_file="ft_$folder"".h"
 	header_name="FT_$(echo $folder | tr a-z A-Z)""_H"
 	date_ymd=$(date +%Y/%m/%d)
@@ -817,49 +867,22 @@ function hcreate()
 		result_struct=$(cat $header_file | grep typedef | wc -l)
 		if [[ $result_struct -gt 0 ]]
 		then
-			# IFS=$'\n'
-			# save_struct=( $(sed -n '/typedef/{p;};x' $header_file) )
-
-			# IFS=$'\n'
-			# end_arr=( $(cat $header_file | grep -on --color=never "}") )
-
-			# start_struct=$(cat $header_file | grep -on --color=never typedef | head -1 | awk -F ':' '{print $1}')
-			# last_struct=$(cat $header_file | grep -on --color=never typedef | tail -n 1 | awk -F ':' '{print $1}')
-			# for val2 in "${end_arr[@]}";
-			# do
-			# 	if [[ $(echo $val2 | awk -F ':' '{print $1}') -ge $last_struct ]]
-			# 	then
-			# 		end_struct="$(echo $val2 | awk -F ':' '{print $1}')"
-			# 		break ;
-			# 	fi
-			# done
-			# IFS=$'\n'
-			# save_struct=($(sed -n "$start_struct,$end_struct p" $header_file))
-
 			start_struct=$(cat $header_file | grep -on --color=never "// ------------------------------ struct ------------------------------------ //" | awk -F ':' '{print $1}')
 			end_struct=$(cat $header_file | grep -on --color=never "// ---------------------------- end struct ---------------------------------- //" | awk -F ':' '{print $1}')
 			IFS=$'\n'
 			save_struct=($(sed -n "$start_struct,$end_struct p" $header_file))
-
-			start_include=$(cat $header_file | grep -on --color=never "// ------------------------------ include ----------------------------------- //" | awk -F ':' '{print $1}')
-			end_include=$(cat $header_file | grep -on --color=never "// ---------------------------- end include --------------------------------- //" | awk -F ':' '{print $1}')
-			IFS=$'\n'
-			save_include=($(sed -n "$start_include,$end_include p" $header_file))
-
-			start_define=$(cat $header_file | grep -on --color=never "// ------------------------------ define ------------------------------------ //" | awk -F ':' '{print $1}')
-			end_define=$(cat $header_file | grep -on --color=never "// ---------------------------- end define ---------------------------------- //" | awk -F ':' '{print $1}')
-			IFS=$'\n'
-			save_define=($(sed -n "$start_define,$end_define p" $header_file))
-
-			# for val in "${save_struct[@]}";
-			# do
-			# 	printf "_: $val\n"
-			# done
-			# for val in "${end_arr[@]}";
-			# do
-			# 	printf "_: $val\n"
-			# done
 		fi
+
+		start_include=$(cat $header_file | grep -on --color=never "// ------------------------------ include ----------------------------------- //" | awk -F ':' '{print $1}')
+		end_include=$(cat $header_file | grep -on --color=never "// ---------------------------- end include --------------------------------- //" | awk -F ':' '{print $1}')
+		IFS=$'\n'
+		save_include=($(sed -n "$start_include,$end_include p" $header_file))
+
+		start_define=$(cat $header_file | grep -on --color=never "// ------------------------------ define ------------------------------------ //" | awk -F ':' '{print $1}')
+		end_define=$(cat $header_file | grep -on --color=never "// ---------------------------- end define ---------------------------------- //" | awk -F ':' '{print $1}')
+		IFS=$'\n'
+		save_define=($(sed -n "$start_define,$end_define p" $header_file))
+
 	else
 		echo "nothing"
 	fi
@@ -937,6 +960,7 @@ function hcreate()
 	echo "# include <errno.h>" >> $header_file
 	echo "# include <fcntl.h>" >> $header_file
 	echo "# include <limits.h>" >> $header_file
+	echo "# include <pthread.h>" >> $header_file
 
 	echo "# include <sys/types.h>" >> $header_file
 	echo "# include <sys/time.h>" >> $header_file
@@ -948,6 +972,7 @@ function hcreate()
 	echo "# include <signal.h>" >> $header_file
 	echo "# include <stdarg.h>" >> $header_file
 	echo "# include <stddef.h>" >> $header_file
+	echo "# include <stdarg.h>" >> $header_file
 	echo "# include <stdio.h>" >> $header_file
 	echo "# include <stdlib.h>" >> $header_file
 	echo "# include <string.h>" >> $header_file
@@ -958,6 +983,7 @@ function hcreate()
 	echo "# include <readline/history.h>" >> $header_file
 
 	echo "" >> $header_file
+
 	##### save_include #####
 	if [[ $save_include != "nothing" ]]
 	then
@@ -986,6 +1012,7 @@ function hcreate()
 	echo "" >> $header_file
 	##### end_place_define #####
 
+	struct_type=()
 	##### save struct #####
 	if [[ $save_struct != "nothing" ]]
 	then
@@ -995,12 +1022,25 @@ function hcreate()
 			then
 				echo -e "\n$val" >> $header_file
 			else
+				if [[ $val == *"}"* ]]
+				then
+					res=`echo $val | tr -d '\t' | tr -d '}' | tr -d ';'`
+					if [[ "$res" =~ [A-Za-z] ]]; then
+						# echo $res
+						struct_type+=( "$res" )
+					fi
+				fi
 				echo "$val" >> $header_file
 			fi
 		done
 	fi
+	# if [[ ${#struct_type[@]} -eq 0 ]]
+	# then
+	# 	printf "struct_type array is empty\n"
+	# fi
 	echo "" >> $header_file
 	##### end_place_struct #####
+
 
 	##### get_function #####
 	IFS=$'\n'
@@ -1016,13 +1056,13 @@ function hcreate()
 			print $0;
 		}
 	}'))
+
 	for val in "${functions[@]}";
 	do
 		if [[ $val != *"main("* ]]
 		then
 			if [[ $(cat $header_file | grep -on "$val" --color=never | wc -l) -eq 0 ]]
 			then
-				# echo $val | grep -on "\nstatic "
 				echo $val >> $header_file
 			fi
 		fi
@@ -1044,6 +1084,12 @@ function hcreate()
 		echo "error detected (script continue)"
 		# echo "two function main(... detected"
 	fi
+
+
+	#---- a faire : find max length of all type present -> define number of tab for each type (basics + struct) for norm ----#
+
+
+	# norm with type in header
 	sed -i '/static /d' $header_file
 	sed -i '/main(/d' $header_file
 	sed -i 's/\.\//\/\//' $header_file
@@ -1058,12 +1104,25 @@ function hcreate()
 	sed -i ':a;N;$!ba;s/\nunsigned\ char\ /\nunsigned\ char\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nlong\ long\ int\ /\nlong\ long\ int\t/g' $header_file
 
+	for val in "${struct_type[@]}";
+	do
+		start="\n$val\ "
+		end="${start}"
+		res="sed -i '"
+		res=$res':a;N;$!ba;s/'
+		res=$res$start
+		res=$res"/"
+		res=$res"\n$val\t"
+		res=$res"/g' $header_file"
+		echo $res >> "$PWD/sh.sh"
+		echo "" >> "$PWD/sh.sh"
+	done
+	source "$PWD/sh.sh"
+	/usr/bin/rm "$PWD/sh.sh"
+
+
 	echo "" >> $header_file
 	echo -n "#endif" >> $header_file
-
-	# code $header_file
-
-	#---- a faire : save new include when added ----#
 }
 
 function vlg()
