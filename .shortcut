@@ -795,34 +795,6 @@ function rmv()
 	fi
 }
 
-function t46()
-{
-	FILE=$PWD"/.folder_ignore"
-	if test -f "$FILE"; then
-		echo ".folder_ignore exists."
-		echo
-	else
-		echo "Which folder do you want to exclude from hcreate ? (end)"
-		answer=""
-		while [[ $answer != "end" ]]
-		do
-			read -a answer
-			if [[ $answer != "end" ]]
-			then
-				echo $answer >> $FILE
-			fi
-		done
-		touch $FILE
-	fi
-	readarray -t abc < $FILE
-	for val in "${abc[@]}";
-	do
-		echo $val
-		echo "---"
-	done
-	echo "------"
-}
-
 function hcreate()
 {
 	FILE=$PWD"/.folder_ignore"
