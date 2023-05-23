@@ -13,82 +13,6 @@
 
 ##### COLORS #####
 
-function mini()
-{
-	cmd="cd ~/mini_mael/minishell/minishell && clear "
-
-	h=""
-	m=""
-	g=""
-	v=""
-	# big=$1
-	# needle="m"
-	if [[ $# -ge 1 ]]
-	then
-		if [[ "${1/'g'}" != $1 && "${1/'v'}" != $1 ]]
-		then
-			echo -e $RED"something wrong"$RST
-			exit 0
-		fi
-		if [[ "${1/'h'}" != $1 ]]
-		then
-			h=" && hcreate "
-		fi
-		if [[ "${1/'m'}" != $1 ]]
-		then
-			m=" && make re"
-		else
-			m=" && make"
-		fi
-		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
-		then
-			v="valgrind --suppressions=./leak.txt --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes "
-		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
-		then
-			g="gdb"
-		fi
-	fi
-	if [[ $# == 1 ]]
-	then
-		total=$cmd$h$m" && clear && "$v$g" ./minishell"
-		eval $total
-		echo
-		echo $total
-		echo
-	elif [[ $# == 2 ]]
-	then
-		total=$cmd$h$m" && clear && echo -e \"$2\" | "$v$g" ./minishell"
-		eval $total
-		echo
-		echo $total
-		echo
-	elif [[ $# == 0 ]]
-	then
-		total=$cmd" && make && ./minishell "
-		eval $total
-	fi
-}
-
-function osco()
-{
-	if [[ $# == 1 ]]
-	then
-		cd ~/osco_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
-	else
-		cd ~/osco_sh && make && ./minishell
-	fi
-}
-
-function mathieu()
-{
-	if [[ $# == 1 ]]
-	then
-		cd ~/mathieu_sh && make && echo "ls | grep i | grep n | wc -l | wc -m " | ./minishell
-	else
-		cd ~/mathieu_sh && make && ./minishell
-	fi
-}
-
 # lite
 export BLACK="\033[0;30m"
 export RED="\033[0;31m"
@@ -161,12 +85,9 @@ alias l='ls'
 alias grep='grep --color=always --binary-files=without-match'
 alias env+='env -0 | sort -z | tr "\0" "\n"'
 
-# alias set_rc='cp -f ~/42/.shortcut ~/.'
-# alias get_rc='cp -f ~/.shortcut ~/42/.'
-
-shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
 # shell_name=$(ps -ef | grep $$ | grep -v grep | head -1 | awk '{print $8}')
-exe_name="pipex"
+shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
+exe_name="a.out"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
 
@@ -206,35 +127,6 @@ function updt()
 	else
 		echo -e $BOLD_WHITE"----- no package to update -----"$RST
 	fi
-	if [ $(ls 2>/dev/null ~/Téléchargements/*mp3 | wc -l) -gt 0 ]
-	then
-		IFS=$'\n'
-		music_list=($(ls ~/Téléchargements/*mp3))
-		nbr_music=$(ls ~/Téléchargements/*mp3 | wc -l)
-		mv ~/Téléchargements/*mp3 ~/Musique/listen/.
-		echo -e $BOLD_GREEN"-----  $nbr_music music updated    -----"$RST
-		for val in "${music_list[@]}"
-		do
-			echo -e $GREEN"$(basename $val)"$RST
-		done
-	else
-		echo -e $BOLD_WHITE"-----   music up to date   -----"$RST
-	fi
-}
-
-function cron_edit()
-{
-	code ~/.updt.sh
-	echo "for more: "
-	echo "crontab -e"
-}
-
-function cfg()
-{
-	code ~/save_shortcut/.shortcut
-	# a=$(pwd)
-	# cd ~/42 && code 42/.shortcut
-	# cd $a
 }
 
 function cfga()
@@ -941,34 +833,20 @@ function t46()
 
 function hcreate()
 {
-	FILE=$PWD"/.folder_ignore"
-	if test -f "$FILE"; then
-		echo "$FILE exists."
-	else
-		echo "Which folder do you want to exclude from hcreate ? (end)"
-		answer=""
-		while [[ $answer != "end" ]]
-		do
-			read -a answer
-			if [[ $answer != "end" ]]
-			then
-				echo $answer >> $FILE
-			fi
-		done
-		touch $FILE
-	fi
-	return ;
 	if [[ $# == 1 ]]
 	then
 		folder=$1
+		header_file=$folder
+		fnd=$(basename $folder)
+		header_name="$(echo $fnd | tr a-z A-Z)"
+		header_name="${header_name//./_}"
 	else
 		folder=$(basename $PWD)
+		header_file="ft_$folder"".h"
+		header_name="FT_$(echo $folder | tr a-z A-Z)""_H"
 	fi
-	header_file="ft_$folder"".h"
-	header_name="FT_$(echo $folder | tr a-z A-Z)""_H"
 	date_ymd=$(date +%Y/%m/%d)
 	date_hms=$(date +%H:%M:%S)
-
 	save_created="nothing"
 	if [ -f $header_file ]
 	then
@@ -977,32 +855,43 @@ function hcreate()
 			save_created=$(sed -n '/Created/{p;};x' $header_file)
 		fi
 	fi
+
 	save_struct="nothing"
+	save_include="nothing"
+	save_define="nothing"
 	if [ -f $header_file ]
 	then
-		result_struct=$(cat $header_file | grep typedef | wc -l)
-		if [[ $result_struct -gt 0 ]]
+		result_struct=$(cat $header_file | grep -q typedef | wc -l)
+		cat $header_file | grep -q typedef
+		if cat $header_file | grep -q typedef;
 		then
-			start_struct=$(cat $header_file | grep -on --color=never "// ------------------------------ struct ------------------------------------ //" | awk -F ':' '{print $1}')
-			end_struct=$(cat $header_file | grep -on --color=never "// ---------------------------- end struct ---------------------------------- //" | awk -F ':' '{print $1}')
-			IFS=$'\n'
-			save_struct=($(sed -n "$start_struct,$end_struct p" $header_file))
+			if cat $header_file | grep -onq "// ------------------------------ struct ------------------------------------ //";
+			then
+				start_struct=$(cat $header_file | grep -on --color=never "// ------------------------------ struct ------------------------------------ //" | awk -F ':' '{print $1}')
+				end_struct=$(cat $header_file | grep -on --color=never "// ---------------------------- end struct ---------------------------------- //" | awk -F ':' '{print $1}')
+				IFS=$'\n'
+				save_struct=($(sed -n "$start_struct,$end_struct p" $header_file))
+			fi
 		fi
 
-		start_include=$(cat $header_file | grep -on --color=never "// ------------------------------ include ----------------------------------- //" | awk -F ':' '{print $1}')
-		end_include=$(cat $header_file | grep -on --color=never "// ---------------------------- end include --------------------------------- //" | awk -F ':' '{print $1}')
-		IFS=$'\n'
-		save_include=($(sed -n "$start_include,$end_include p" $header_file))
+		if cat $header_file | grep -onq "// ------------------------------ include ----------------------------------- //";
+		then
+			start_include=$(cat $header_file | grep -on --color=never "// ------------------------------ include ----------------------------------- //" | awk -F ':' '{print $1}')
+			end_include=$(cat $header_file | grep -on --color=never "// ---------------------------- end include --------------------------------- //" | awk -F ':' '{print $1}')
+			IFS=$'\n'
+			save_include=($(sed -n "$start_include,$end_include p" $header_file))
+		fi
 
-		start_define=$(cat $header_file | grep -on --color=never "// ------------------------------ define ------------------------------------ //" | awk -F ':' '{print $1}')
-		end_define=$(cat $header_file | grep -on --color=never "// ---------------------------- end define ---------------------------------- //" | awk -F ':' '{print $1}')
-		IFS=$'\n'
-		save_define=($(sed -n "$start_define,$end_define p" $header_file))
-
+		if cat $header_file | grep -onq "// ------------------------------ define ------------------------------------ //";
+		then
+			start_define=$(cat $header_file | grep -on --color=never "// ------------------------------ define ------------------------------------ //" | awk -F ':' '{print $1}')
+			end_define=$(cat $header_file | grep -on --color=never "// ---------------------------- end define ---------------------------------- //" | awk -F ':' '{print $1}')
+			IFS=$'\n'
+			save_define=($(sed -n "$start_define,$end_define p" $header_file))
+		fi
 	else
 		echo "nothing"
 	fi
-
 
 	##### ERASE #####
 	> $header_file;
@@ -1068,7 +957,6 @@ function hcreate()
 	echo "/*                                                                            */" >> $header_file
 	echo "/* ************************************************************************** */" >> $header_file
 
-
 	echo -e "\n#ifndef $header_name" >> $header_file
 	echo -e "# define $header_name\n" >> $header_file
 
@@ -1112,10 +1000,13 @@ function hcreate()
 				echo "$val" >> $header_file
 			fi
 		done
+		echo "" >> $header_file
+	else
+		echo "// ------------------------------ include ----------------------------------- //" >> $header_file
+		echo "// ---------------------------- end include --------------------------------- //" >> $header_file
+		echo "" >> $header_file
 	fi
-	echo "" >> $header_file
 	##### end_place_include #####
-
 
 	##### save_define #####
 	if [[ $save_define != "nothing" ]]
@@ -1124,21 +1015,32 @@ function hcreate()
 		do
 			echo "$val" >> $header_file
 		done
+		echo "" >> $header_file
+	else
+		echo "// ------------------------------ define ------------------------------------ //" >> $header_file
+		echo "// ---------------------------- end define ---------------------------------- //" >> $header_file
+		echo "" >> $header_file
 	fi
-	echo "" >> $header_file
 	##### end_place_define #####
 
 	struct_type=()
 	##### save struct #####
 	if [[ $save_struct != "nothing" ]]
 	then
+		last_comment=0
 		for val in "${save_struct[@]}";
 		do
 			if [[ "$val" == *"typedef"* || "$val" == *"enum e_"* ]]
 			then
-				echo -e "\n$val" >> $header_file
+				if [[ $last_comment == "1" ]]
+				then
+					echo -e "$val" >> $header_file
+					last_comment=0
+				else
+					echo -e "\n$val" >> $header_file
+				fi
 			else
-				if [[ $val == *"}"* ]]
+				if [[ $val == *"}"* ]];
 				then
 					res=`echo $val | tr -d '\t' | tr -d '}' | tr -d ';'`
 					if [[ "$res" =~ [A-Za-z] ]]; then
@@ -1148,20 +1050,30 @@ function hcreate()
 				fi
 				echo "$val" >> $header_file
 			fi
+			if echo $val | grep -q "// ---------------------------- "
+			then
+				if echo $val | grep -vq "// ---------------------------- end"
+				then
+					last_comment=1
+				fi
+			fi
 		done
+		echo "" >> $header_file
+	else
+		echo "// ------------------------------ struct ------------------------------------ //" >> $header_file
+		echo "// ---------------------------- end struct ---------------------------------- //" >> $header_file
+		echo "" >> $header_file
 	fi
 	# if [[ ${#struct_type[@]} -eq 0 ]]
 	# then
 	# 	printf "struct_type array is empty\n"
 	# fi
-	echo "" >> $header_file
 	##### end_place_struct #####
-
 
 	##### get_function #####
 	IFS=$'\n'
 	functions=($(find . -type f -name '*.[ch]' -exec ctags -x --c-kinds=f {} ';' | awk '{
-		if ($4 ~ "libft")
+		if ($4 ~ "minilibx")
 		{
 			next;
 		}
@@ -1220,6 +1132,7 @@ function hcreate()
 	sed -i ':a;N;$!ba;s/\nunsigned\ char\ /\nunsigned\ char\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nlong\ long\ int\ /\nlong\ long\ int\t/g' $header_file
 
+	touch "$PWD/sh.sh"
 	for val in "${struct_type[@]}";
 	do
 		start="\n$val\ "
@@ -1241,6 +1154,96 @@ function hcreate()
 	echo -n "#endif" >> $header_file
 }
 
+function mcreate()
+{
+	# folder to search C file
+	# if [[ $# == 1 ]]
+	# then
+
+	# else
+
+	# fi
+
+	if cat Makefile | grep -onq "# ----------------------------------- srcs ----------------------------------- #";
+	then
+		start_srcs=$(cat Makefile | grep -on --color=never "# ----------------------------------- srcs ----------------------------------- #" | awk -F ':' '{print $1}')
+		end_srcs=$(cat Makefile | grep -on --color=never "# --------------------------------- end srcs --------------------------------- #" | awk -F ':' '{print $1}')
+		IFS=$'\n'
+		last_line=$(cat Makefile | wc -l)
+
+
+		mid1_srcs=$start_srcs
+		let "mid1_srcs-=1"
+
+		mid2_srcs=$end_srcs
+		let "mid2_srcs+=1"
+
+
+		save_first_part=($(sed -n "1,$mid1_srcs p" Makefile))
+		save_srcs=($(sed -n "$start_srcs,$end_srcs p" Makefile))
+		save_last_part=($(sed -n "$mid2_srcs,$last_line p" Makefile))
+
+		> new_makefile
+		for val in "${save_first_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
+		file_struct=(`ls srcs/*.c srcs/*/*.c`)
+		ite=0
+		len=${#file_struct[*]}
+		let "len-=1"
+		for val in "${file_struct[@]}";
+		do
+			val=$(basename $val)
+			if [[ $ite -eq 0 ]]
+			then
+				echo -e "_SRCS	=	$val \\" >> new_makefile
+			elif [[ $ite == $len ]]
+			then
+				echo -e "\t\t\t$val" >> new_makefile
+			else
+				echo -e "\t\t\t$val \\" >> new_makefile
+			fi
+			let "ite+=1"
+		done
+		echo "# --------------------------------- end srcs --------------------------------- #" >> new_makefile
+		echo "" >> new_makefile
+		for val in "${save_last_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "" >> new_makefile
+
+		mv -f new_makefile Makefile
+	fi
+}
+
+function hm()
+{
+	if [[ $# == 1 ]]
+	then
+		hcreate $1 && mcreate
+	else
+		hcreate && mcreate
+	fi
+}
+
+function cub()
+{
+	cd ~/cub3d
+	hcreate incs/cub3d.h && mcreate && make re && valgrind --leak-check=full --show-leak-kinds=all ./cub3d
+}
 
 function vlg()
 {
@@ -1477,7 +1480,7 @@ function size()
 	echo
 }
 
-function onorm_file()
+function norm_file()
 {
 	IFS=$'\n'
 	toggle=1
@@ -1504,7 +1507,7 @@ function onorm_file()
 	done
 }
 
-function norm_file()
+function new_norm_file()
 {
 	IFS=$'\n'
 	toggle=2
