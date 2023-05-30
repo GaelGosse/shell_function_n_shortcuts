@@ -1121,6 +1121,7 @@ function hcreate()
 	sed -i '/static /d' $header_file
 	sed -i '/main(/d' $header_file
 	sed -i 's/\.\//\/\//' $header_file
+	sed -i 's/\.\/\//\.\.\//' $header_file
 	sed -i ':a;N;$!ba;s/)\n/);\n/g' $header_file
 	sed -i ':a;N;$!ba;s/)$/);/g' $header_file
 	sed -i ':a;N;$!ba;s/\n\ \ \ \ /\n/g' $header_file
