@@ -1073,7 +1073,7 @@ function hcreate()
 	##### get_function #####
 	IFS=$'\n'
 	functions=($(find . -type f -name '*.[ch]' -exec ctags -x --c-kinds=f {} ';' | awk '{
-		if ($4 ~ "minilibx")
+		if ($4 ~ "minilibx" || $4 ~ "libft")
 		{
 			next;
 		}
@@ -1121,6 +1121,19 @@ function hcreate()
 	sed -i '/static /d' $header_file
 	sed -i '/main(/d' $header_file
 	sed -i 's/\.\//\/\//' $header_file
+	sed -i 's/\.\/\//\.\.\//' $header_file
+
+	# _start="\n\.\/"
+	# _res="sed -i \""
+	# _res=$_res"s/"
+	# _res=$_res$_start
+	# _res=$_res"/"
+	# _res=$_res"\n\/\/"
+	# _res=$_res"/g\" $header_file"
+	# echo $_res > "$PWD/_sh.sh"
+	# source "$PWD/_sh.sh"
+	# /usr/bin/rm "$PWD/_sh.sh"
+
 	sed -i ':a;N;$!ba;s/)\n/);\n/g' $header_file
 	sed -i ':a;N;$!ba;s/)$/);/g' $header_file
 	sed -i ':a;N;$!ba;s/\n\ \ \ \ /\n/g' $header_file
@@ -1136,7 +1149,6 @@ function hcreate()
 	for val in "${struct_type[@]}";
 	do
 		start="\n$val\ "
-		end="${start}"
 		res="sed -i '"
 		res=$res':a;N;$!ba;s/'
 		res=$res$start
@@ -1194,7 +1206,7 @@ function mcreate()
 		done
 		echo "" >> new_makefile
 		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
-		file_struct=(`ls srcs/*.c srcs/*/*.c`)
+		file_struct=(`ls srcs/*.c`)
 		ite=0
 		len=${#file_struct[*]}
 		let "len-=1"
@@ -1220,6 +1232,10 @@ function mcreate()
 			then
 				echo "" >> new_makefile
 			fi
+			if echo $val | grep -qvi "=" | grep -qi ":"
+			then
+				echo "" >> new_makefile
+			fi
 			echo "$val" >> new_makefile
 		done
 		echo "" >> new_makefile
@@ -1241,8 +1257,66 @@ function hm()
 
 function cub()
 {
-	cd ~/cub3d
-	hcreate incs/cub3d.h && mcreate && make re && valgrind --leak-check=full --show-leak-kinds=all ./cub3d
+
+	cmd="cd ~/cub3d && clear "
+
+	h=""
+	r=""
+	m=""
+	g=""
+	v=""
+	# big=$1
+	# needle="r"
+	if [[ $# -ge 1 ]]
+	then
+		if [[ "${1/'g'}" != $1 && "${1/'v'}" != $1 ]]
+		then
+			echo -e $RED"something wrong"$RST
+			exit 0
+		fi
+		if [[ "${1/'h'}" != $1 ]]
+		then
+			h=" && hcreate incs/cub3D.h "
+		fi
+		if [[ "${1/'m'}" != $1 ]]
+		then
+			m=" && mcreate "
+		fi
+		if [[ "${1/'r'}" != $1 ]]
+		then
+			r=" && make re"
+		else
+			r=" && make"
+		fi
+		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
+		then
+			v="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes "
+		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
+		then
+			g="gdb"
+		fi
+	fi
+	if [[ $# == 1 ]]
+	then
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub"
+		eval $total
+		# echo
+		# echo $total
+		# echo
+	elif [[ $# == 2 ]]
+	then
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D $2"
+		eval $total
+		# echo
+		# echo $total
+		# echo
+	elif [[ $# == 0 ]]
+	then
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub "
+		# echo
+		# echo $total
+		# echo
+	fi
 }
 
 function vlg()

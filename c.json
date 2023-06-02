@@ -1,4 +1,30 @@
 {
+	"write": {
+		"prefix": [
+			"w",
+			"wr",
+		],
+		"body": "write(1, \"${0}\", 1);",
+		"description": "write"
+	},
+	"write n": {
+		"prefix": [
+			"wn",
+			"wrn",
+		],
+		"body": "write(1, \"\\n\", 1);",
+		"description": "write"
+	},
+	"void": {
+		"prefix": "v",
+		"body": "(void)${0};",
+		"description": "place void"
+	},
+	"return": {
+		"prefix": "rt",
+		"body": "return (${0});",
+		"description": "place return"
+	},
 	"printf": {
 		"prefix": "pf",
 		"body": "printf(\"${0}\\\\n\");",
@@ -297,6 +323,392 @@
 				"printf(\"buffer[0]: %c\", buffer[0]);",
 			"}"
 		]
-	}
+	},
+	"write": {
+		"prefix": [
+			"w",
+			"wr",
+		],
+		"body": "write(1, \"${0}\", 1);",
+		"description": "write"
+	},
+	"write n": {
+		"prefix": [
+			"wn",
+			"wrn",
+		],
+		"body": "write(1, \"\\n\", 1);",
+		"description": "write"
+	},
+	"void": {
+		"prefix": "v",
+		"body": "(void)${0};",
+		"description": "place void"
+	},
+	"return": {
+		"prefix": "rt",
+		"body": "return (${0});",
+		"description": "place return"
+	},
 
+	"printf with colors": {
+		"prefix": "pc",
+		"body": "printf(RED\"${0}\"RESET\"\\n\");",
+		"description": "Snippet for printf text"
+	},
+	"printf %c variable with colors": {
+		"prefix": "pcc",
+		"body": "printf(YELLOW\"${1:var}: %c\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %c variable"
+	},
+	"printf %s variable with colors": {
+		"prefix": "pcs",
+		"body": "printf(GREEN\"${1:var}: %s\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %s variable"
+	},
+	"printf %p %s variable with colors": {
+		"prefix": "pcsp",
+		"body": "printf(BOLD_GREEN\"%p: \"GREEN\"%s\"RESET\"\\n\", ${1:var}, ${1:var});",
+		"description": "Snippet for printf %s variable"
+	},
+	"printf %p variable with colors": {
+		"prefix": "pcp",
+		"body": "printf(CYAN\"${1:var}: %p\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %p variable"
+	},
+	"printf %d variable with colors": {
+		"prefix": "pcd",
+		"body": "printf(BLUE\"${1:var}: %d\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %d variable"
+	},
+	"printf %i variable with colors": {
+		"prefix": "pci",
+		"body": "printf(PURPLE\"${1:var}: %i\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %i variable"
+	},
+	"printf %li variable with colors": {
+		"prefix": "pcli",
+		"body": "printf(WHITE\"${1:var}: %li\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %li variable"
+	},
+	"printf %u variable with colors": {
+		"prefix": "pcu",
+		"body": "printf(RED\"${1:var}: %u\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %u variable"
+	},
+	"printf %x variable with colors": {
+		"prefix": "pcx",
+		"body": "printf(YELLOW\"${1:var}: %x\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %x variable"
+	},
+	"printf %X variable with colors": {
+		"prefix": "pcX",
+		"body": "printf(GREEN\"${1:var}: %X\"RESET\"\\n\", ${1:var});",
+		"description": "Snippet for printf %X variable"
+	},
+	"print separator with colors": {
+		"prefix": "csep",
+		"body": "printf(BACK_WHITE\"------------------------------\"RESET\"\\n\");",
+		"description": "Snippet for printf text"
+	},
+
+	"printf": {
+		"prefix": "pf",
+		"body": "printf(\"${0}\\\\n\");",
+		"description": "Snippet for printf text"
+	},
+	"printf %c variable": {
+		"prefix": "pfc",
+		"body": "printf(\"${1:var}: %c\\\\n\", ${1:var});",
+		"description": "Snippet for printf %c variable"
+	},
+	"printf %s variable": {
+		"prefix": "pfs",
+		"body": "printf(\"${1:var}: %s\\\\n\", ${1:var});",
+		"description": "Snippet for printf %s variable"
+	},
+	"printf %p %s variable": {
+		"prefix": "pfsp",
+		"body": "printf(\"%p: %s\"RESET\"\\n\", ${1:var}, ${1:var});",
+		"description": "Snippet for printf %s variable"
+	},
+	"printf %p variable": {
+		"prefix": "pfp",
+		"body": "printf(\"${1:var}: %p\\\\n\", ${1:var});",
+		"description": "Snippet for printf %p variable"
+	},
+	"printf %d variable": {
+		"prefix": "pfd",
+		"body": "printf(\"${1:var}: %d\\\\n\", ${1:var});",
+		"description": "Snippet for printf %d variable"
+	},
+	"printf %i variable": {
+		"prefix": "pfi",
+		"body": "printf(\"${1:var}: %i\\\\n\", ${1:var});",
+		"description": "Snippet for printf %i variable"
+	},
+	"printf %li variable": {
+		"prefix": "pfli",
+		"body": "printf(\"${1:var}: %li\\\\n\", ${1:var});",
+		"description": "Snippet for printf %li variable"
+	},
+	"printf %u variable": {
+		"prefix": "pfu",
+		"body": "printf(\"${1:var}: %u\\\\n\", ${1:var});",
+		"description": "Snippet for printf %u variable"
+	},
+	"printf %x variable": {
+		"prefix": "pfx",
+		"body": "printf(\"${1:var}: %x\\\\n\", ${1:var});",
+		"description": "Snippet for printf %x variable"
+	},
+	"printf %X variable": {
+		"prefix": "pfX",
+		"body": "printf(\"${1:var}: %X\\\\n\", ${1:var});",
+		"description": "Snippet for printf %X variable"
+	},
+	"print separator": {
+		"prefix": "sep",
+		"body": "printf(\"------------------------------\\n\");",
+		"description": "Snippet for printf text"
+	},
+
+	"structure if": {
+		"prefix": [
+			"if",
+		],
+		"body": [
+			"if ($1 == $2)",
+			"{",
+			"\t$3",
+			"}",
+		],
+	},
+	"structure if elif": {
+		"prefix": [
+			"elif",
+		],
+		"body": [
+			"if ($1 == $2)",
+			"{",
+			"\t$3",
+			"}",
+			"else if ($4 == $5)",
+			"{",
+			"\t$6",
+			"}",
+			"else",
+			"{",
+			"\t$7",
+			"}",
+		],
+	},
+	"structure if else": {
+		"prefix": [
+			"ife",
+		],
+		"body": [
+			"if ($1 == $2)",
+			"{",
+			"\t$3",
+			"}",
+			"else",
+			"{",
+			"\t$4",
+			"}",
+		],
+	},
+	"structure if else short": {
+		"prefix": [
+			"ifs",
+		],
+		"body": [
+			"if ($1 == $2)",
+			"\t$3",
+			"else",
+			"\t$4",
+		],
+	},
+	"structure while": {
+		"prefix": [
+			"while",
+		],
+		"body": [
+			"while ($1 == $2)",
+			"{",
+			"\t$3",
+			"}",
+		],
+	},
+
+	"define": {
+		"prefix": [
+			"define",
+		],
+		"body": [
+			"# define $1 $2",
+		],
+	},
+
+	"include cub3d": {
+		"prefix": [
+			"hcub",
+		],
+		"body": [
+			"#include \"../../incs/cub3.h\"",
+			"$2"
+		],
+	},
+	"include <": {
+		"prefix": [
+			"inc<",
+			"#inc<",
+			"# inc<",
+		],
+		"body": [
+			"#include <$1.h>",
+			"$2"
+		],
+	},
+	"include \"": {
+		"prefix": [
+			"inc\"",
+			"#inc\"",
+			"# inc\"",
+		],
+		"body": [
+			"#include \"$1.h\"",
+			"$2"
+		],
+	},
+	"include color": {
+		"prefix": [
+			"icolor",
+		],
+		"body": [
+			"#include \"color.h\""
+		],
+	},
+	"include all": {
+		"prefix": [
+			"inca",
+			"inc_all",
+		],
+		"body": [
+			"#include <ctype.h>",
+			"#include <limits.h>",
+			"#include <stdio.h>",
+			"#include <string.h>",
+			"#include <stdlib.h>",
+			"#include <stdarg.h>",
+			"#include <stddef.h>",
+			"#include <errno.h>",
+			"#include <signal.h>",
+			"#include <time.h>",
+			"#include <unistd.h>",
+		],
+	},
+
+	"main": {
+		"prefix": [
+			"main",
+		],
+		"body": [
+			"int\tmain(int argc, char **argv){",
+			"\t$1",
+			"\t(void)argc;",
+			"\t(void)argv;",
+			"}"
+		],
+	},
+
+
+	"first lines in files": {
+		"prefix": [
+			"test",
+		],
+		"body": [
+			"#include <ctype.h>",
+			"#include <limits.h>",
+			"#include <stdio.h>",
+			"#include <string.h>",
+			"#include <stdlib.h>",
+			"#include <stdarg.h>",
+			"#include <stddef.h>",
+			"#include <errno.h>",
+			"#include <signal.h>",
+			"#include <time.h>",
+			"#include <unistd.h>",
+			"",
+			"int\tmain(int argc, char **argv){",
+			"\t$1",
+			"\t(void)argc;",
+			"\t(void)argv;",
+			"}"
+		],
+	},
+
+	"color": {
+		"prefix": "color",
+		"body": [
+"#ifndef COLOR_H",
+"# define COLOR_H",
+"",
+"# include <stdio.h>",
+"",
+"// color",
+"# define BLACK \"\\033[0;30m\"",
+"# define RED \"\\033[0;31m\"",
+"# define GREEN \"\\033[0;32m\"",
+"# define YELLOW \"\\033[0;33m\"",
+"# define BLUE \"\\033[0;34m\"",
+"# define PURPLE \"\\033[0;35m\"",
+"# define CYAN \"\\033[0;36m\"",
+"# define WHITE \"\\033[0;37m\"",
+"",
+"// bold color",
+"# define BOLD_BLACK \"\\033[1;30m\"",
+"# define BOLD_RED \"\\033[1;31m\"",
+"# define BOLD_GREEN \"\\033[1;32m\"",
+"# define BOLD_YELLOW \"\\033[1;33m\"",
+"# define BOLD_BLUE \"\\033[1;34m\"",
+"# define BOLD_PURPLE \"\\033[1;35m\"",
+"# define BOLD_CYAN \"\\033[1;36m\"",
+"# define BOLD_WHITE \"\\033[1;37m\"",
+"",
+"// background",
+"# define BACK_BLACK \"\\033[0;40m\"",
+"# define BACK_RED \"\\033[0;41;30m\"",
+"# define BACK_GREEN \"\\033[0;42;30m\"",
+"# define BACK_YELLOW \"\\033[0;43;30m\"",
+"# define BACK_BLUE \"\\033[0;44;30m\"",
+"# define BACK_PURPLE \"\\033[0;45;30m\"",
+"# define BACK_CYAN \"\\033[0;46;30m\"",
+"# define BACK_WHITE \"\\033[0;47;30m\"",
+"",
+"# define BACK_BOLD_BLACK \"\\033[1;40m\"",
+"# define BACK_BOLD_RED \"\\033[1;41;30m\"",
+"# define BACK_BOLD_GREEN \"\\033[1;42;30m\"",
+"# define BACK_BOLD_YELLOW \"\\033[1;43;30m\"",
+"# define BACK_BOLD_BLUE \"\\033[1;44;30m\"",
+"# define BACK_BOLD_PURPLE \"\\033[1;45;30m\"",
+"# define BACK_BOLD_CYAN \"\\033[1;46;30m\"",
+"# define BACK_BOLD_WHITE \"\\033[1;47;30m\"",
+"",
+"// underline color",
+"# define UNDER_BLACK \"\\033[4;30m\"",
+"# define UNDER_RED \"\\033[4;31m\"",
+"# define UNDER_GREEN \"\\033[4;32m\"",
+"# define UNDER_YELLOW \"\\033[4;33m\"",
+"# define UNDER_BLUE \"\\033[4;34m\"",
+"# define UNDER_PURPLE \"\\033[4;35m\"",
+"# define UNDER_CYAN \"\\033[4;36m\"",
+"# define UNDER_WHITE \"\\033[4;37m\"",
+"",
+"# define RESET \"\\033[0m\"",
+"# define RST \"\\033[0m\"",
+"",
+"#endif",
+		]
+	}
 }
