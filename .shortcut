@@ -1122,18 +1122,6 @@ function hcreate()
 	sed -i '/main(/d' $header_file
 	sed -i 's/\.\//\/\//' $header_file
 	sed -i 's/\.\/\//\.\.\//' $header_file
-
-	# _start="\n\.\/"
-	# _res="sed -i \""
-	# _res=$_res"s/"
-	# _res=$_res$_start
-	# _res=$_res"/"
-	# _res=$_res"\n\/\/"
-	# _res=$_res"/g\" $header_file"
-	# echo $_res > "$PWD/_sh.sh"
-	# source "$PWD/_sh.sh"
-	# /usr/bin/rm "$PWD/_sh.sh"
-
 	sed -i ':a;N;$!ba;s/)\n/);\n/g' $header_file
 	sed -i ':a;N;$!ba;s/)$/);/g' $header_file
 	sed -i ':a;N;$!ba;s/\n\ \ \ \ /\n/g' $header_file
