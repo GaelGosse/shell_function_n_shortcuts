@@ -13,6 +13,7 @@
 
 ##### COLORS #####
 
+export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
 # lite
 export BLACK="\033[0;30m"
 export RED="\033[0;31m"
@@ -68,6 +69,7 @@ export RST="\033[0m"
 export NOTHING="$BOLD_YELLOW""nothing happened 👒$RST"
 export W_ARGS="$RED""wrong numbers of args$RST"
 
+export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
 # bind -s 'set completion-ignore-case on'
 
 SLEEP=2
@@ -90,6 +92,40 @@ shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
 exe_name="a.out"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
+
+function t10()
+{
+	sudo pacman -S code=1.67.0
+	sudo pacman -S code=1.67.1
+	sudo pacman -S code=1.67.2
+	sudo pacman -S code=1.67.3
+	sudo pacman -S code=1.67.4
+	sudo pacman -S code=1.67.5
+	sudo pacman -S code=1.67.6
+	sudo pacman -S code=1.67.7
+	sudo pacman -S code=1.67.8
+	sudo pacman -S code=1.67.9
+	sudo pacman -S code=1.67.0-1
+	sudo pacman -S code=1.67.1-1
+	sudo pacman -S code=1.67.2-1
+	sudo pacman -S code=1.67.3-1
+	sudo pacman -S code=1.67.4-1
+	sudo pacman -S code=1.67.5-1
+	sudo pacman -S code=1.67.6-1
+	sudo pacman -S code=1.67.7-1
+	sudo pacman -S code=1.67.8-1
+	sudo pacman -S code=1.67.9-1
+	sudo pacman -S code=1.67.0-2
+	sudo pacman -S code=1.67.1-2
+	sudo pacman -S code=1.67.2-2
+	sudo pacman -S code=1.67.3-2
+	sudo pacman -S code=1.67.4-2
+	sudo pacman -S code=1.67.5-2
+	sudo pacman -S code=1.67.6-2
+	sudo pacman -S code=1.67.7-2
+	sudo pacman -S code=1.67.8-2
+	sudo pacman -S code=1.67.9-2
+}
 
 function ld()
 {
@@ -226,6 +262,8 @@ function commit()
 function poush()
 {
 	if [[ $# == 1 ]]; then
+		make fclean
+
 		git status
 		echo -e "$BACK_GREEN Start poush $RST"
 
@@ -245,6 +283,7 @@ function poush_42()
 	if [[ $# == 1 ]]; then
 		date
 		save=$(pwd)
+		make fclean
 		cd ~/42
 		# cp ~/.config/Code/User/snippets/c.json .
 		# cp ~/.config/Code/User/snippets/shellscript.json .
@@ -282,9 +321,9 @@ function pull_42()
 
 function cpl()
 {
-	rm -f *.gch
-	rm -f */*.gch
-	$CC $@ && $input_file
+	# rm -f *.gch
+	# rm -f */*.gch
+	$CC -lm $@ && $input_file
 }
 
 function cpla()
@@ -740,6 +779,7 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
+					echo
 					echo -e $RED"/usr/bin/rm -f $1"$RST
 					/usr/bin/rm -f "$1"
 				else
@@ -1126,7 +1166,9 @@ function hcreate()
 	sed -i ':a;N;$!ba;s/)$/);/g' $header_file
 	sed -i ':a;N;$!ba;s/\n\ \ \ \ /\n/g' $header_file
 	sed -i ':a;N;$!ba;s/\nvoid\ /\nvoid\t/g' $header_file
+	sed -i ':a;N;$!ba;s/\ndouble\ /\ndouble\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nint\ /\nint\t\t/g' $header_file
+	sed -i ':a;N;$!ba;s/\nsize_t\ /\nsize_t\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nchar\ /\nchar\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nlong\ int\ /\nlong\ int\t\t/g' $header_file
 	sed -i ':a;N;$!ba;s/\nunsigned\ int\ /\nunsigned\ int\t/g' $header_file
@@ -1137,6 +1179,7 @@ function hcreate()
 	for val in "${struct_type[@]}";
 	do
 		start="\n$val\ "
+		end="${start}"
 		res="sed -i '"
 		res=$res':a;N;$!ba;s/'
 		res=$res$start
@@ -1194,7 +1237,7 @@ function mcreate()
 		done
 		echo "" >> new_makefile
 		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
-		file_struct=(`ls srcs/*.c`)
+		file_struct=(`ls srcs/*.c srcs/*/*.c`)
 		ite=0
 		len=${#file_struct[*]}
 		let "len-=1"
@@ -1220,10 +1263,6 @@ function mcreate()
 			then
 				echo "" >> new_makefile
 			fi
-			if echo $val | grep -qvi "=" | grep -qi ":"
-			then
-				echo "" >> new_makefile
-			fi
 			echo "$val" >> new_makefile
 		done
 		echo "" >> new_makefile
@@ -1231,6 +1270,149 @@ function mcreate()
 
 		mv -f new_makefile Makefile
 	fi
+}
+
+function nbr_func()
+{
+	if [[ $# == 1 ]]
+	then
+		# echo arg
+		# files=$(ls $1*.c)
+		echo "work in progress..."
+	else
+		# echo alone
+		# files=($(ls *.c))
+		functions=($(find . -type f -name '*.[ch]' -exec ctags -x --c-kinds=f {} ';' | awk '{
+			if ($4 ~ "minilibx" || $4 ~ "libft")
+			{
+				next;
+			}
+			else
+			{
+				print $4;
+				$1=$2=$3=$4="";
+				print $0;
+			}
+		}'))
+	fi
+	filename="_nbr_func"
+	> $filename
+	filename_2="_nbr_func_2"
+	> $filename_2
+	count=-1
+	actual_fct="${functions[0]}"
+	echo
+	echo -e "\t$UNDER_WHITE Nbr of functions by file $RST"
+	echo
+	for val in "${functions[@]}";
+	do
+		if [[ $val != *"main("* ]]
+		then
+			if [[ $val == "./"* ]]
+			then
+				# echo $val
+				let "count+=1"
+			fi
+			if [[ $val == "./"* && $val != *"$actual_fct"* ]]
+			then
+
+				touch "$PWD/sh.sh"
+
+				start="$actual_fct"
+				res="sed -i '"
+				res=$res':a;N;$!ba;s|'
+				res=$res$start
+				res=$res"|"
+				res=$res"$actual_fct    $count"
+				res=$res"|g' $filename"
+
+				echo $res >> "$PWD/sh.sh"
+				echo "" >> "$PWD/sh.sh"
+
+				source "$PWD/sh.sh"
+				/usr/bin/rm "$PWD/sh.sh"
+
+				n=40
+				reset=$(tput sgr0)
+				yellow=$(tput setaf 3)
+				back_yellow=$(tput setab 3)
+				green=$(tput setaf 2)
+				back_green=$(tput setab 2)
+				red=$(tput setaf 1)
+				back_red=$(tput setab 1)
+				if [[ $count -eq 5 ]]
+				then
+
+					# printf "%-${n}.${n}s %s\n" "${yellow}$actual_fct " "${back_yellow} $count ${reset}"
+					printf "%-${n}.${n}s %s\n" "$actual_fct " " $count " >> $filename
+					# echo -e $YELLOW "$actual_fct\t$BOLD_YELLOW$count$YELLOW functions" $RST
+				elif [[ $count -gt 5 ]]
+				then
+
+					# printf "%-${n}.${n}s %s\n" "${red}$actual_fct " "${back_red} $count ${reset}"
+					printf "%-${n}.${n}s %s\n" "$actual_fct " " $count " >> $filename
+					# echo -e $RED "$actual_fct\t$BOLD_RED$count$RED functions" $RST
+				elif [[ $count -lt 5 ]]
+				then
+
+					# printf "%-${n}.${n}s %s\n" "${green}$actual_fct " "${back_green} $count ${reset}"
+					printf "%-${n}.${n}s %s\n" "$actual_fct " " $count " >> $filename
+					# echo -e $GREEN "$actual_fct\t$BOLD_GREEN$count$GREEN functions" $RST
+				fi
+				echo "$actual_fct    $count" >> $filename_2
+				actual_fct=$val
+				count=0
+			fi
+
+			# ------------------------ >> WITH FILE << ------------------------
+
+			if [[ $(cat $filename | grep -on "$val" --color=never | wc -l) -eq 0 ]]
+			then
+				echo $val >> $filename_2
+				# if [[ $val != "./"* ]]
+				# then
+				# 	echo $val >> $filename_2
+				# fi
+			fi
+		fi
+	done
+
+	final_file=($(sort $filename))
+	for val in "${final_file[@]}";
+	do
+		number=$(echo $val | tail -c4 | tr -d -c 0-9)
+		# echo $number
+		if [[ $number -eq 5 ]]
+		then
+			echo -e $YELLOW $val | head -c40
+			echo -e "$BACK_YELLOW $number $RST"
+		elif [[ $number -gt 5 ]]
+		then
+			echo -e $RED $val | head -c40
+			echo -e "$BACK_RED $number $RST"
+		elif [[ $number -lt 5 ]]
+		then
+			echo -e $GREEN $val | head -c40
+			echo -e "$BACK_GREEN $number $RST"
+		fi
+	done
+	echo
+	# cat $filename
+	# for val in "${functions[@]}";
+	# do
+	# 	echo $val
+	# 	echo ----
+	# done
+	# find . -type f -name '*.[ch]' -exec ctags -x --c-kinds=f {} ';'
+}
+
+function abc()
+{
+	while [[ true ]]
+	do
+		clear && norminette . | grep -i error --color=never
+		sleep 3
+	done
 }
 
 function hm()
@@ -1243,68 +1425,110 @@ function hm()
 	fi
 }
 
-function cub()
+function cub2()
 {
-
-	cmd="cd ~/cub3d && clear "
-
-	h=""
-	r=""
-	m=""
-	g=""
-	v=""
-	# big=$1
-	# needle="r"
-	if [[ $# -ge 1 ]]
-	then
-		if [[ "${1/'g'}" != $1 && "${1/'v'}" != $1 ]]
-		then
-			echo -e $RED"something wrong"$RST
-			exit 0
-		fi
-		if [[ "${1/'h'}" != $1 ]]
-		then
-			h=" && hcreate incs/cub3D.h "
-		fi
-		if [[ "${1/'m'}" != $1 ]]
-		then
-			m=" && mcreate "
-		fi
-		if [[ "${1/'r'}" != $1 ]]
-		then
-			r=" && make re"
-		else
-			r=" && make"
-		fi
-		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
-		then
-			v="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes "
-		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
-		then
-			g="gdb"
-		fi
-	fi
+	cd ~/cub2d
+	hcrt=""
+	mcrt=""
+	mk="make"
+	or=""
+	gdb=""
 	if [[ $# == 1 ]]
 	then
-		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub"
-		eval $total
-		# echo
-		# echo $total
-		# echo
-	elif [[ $# == 2 ]]
-	then
-		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D $2"
-		eval $total
-		# echo
-		# echo $total
-		# echo
-	elif [[ $# == 0 ]]
-	then
-		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub "
-		# echo
-		# echo $total
-		# echo
+		if [[ "${1/h}" != $1 ]]
+		then
+			hcrt=" hcreate incs/cub3D.h "
+		fi
+		if [[ "${1/m}" != $1 && "${1/h}" != $1 ]]
+		then
+			mcrt+=" && "
+		fi
+		if [[ "${1/m}" != $1 ]]
+		then
+			mcrt+=" mcreate "
+		fi
+		if [[ "${1/m}" != $1 || "${1/h}" != $1 ]]
+		then
+			or+=" && "
+		fi
+		if [[ "${1/g}" != $1 ]]
+		then
+			gdb=" gdb --args "
+		elif [[ "${1/v}" != $1 ]]
+		then
+			gdb=" valgrind --leak-check=full --track-origins=yes"
+		fi
+		if [[ "${1/r}" != $1 ]]
+		then
+			mk+=" re"
+		fi
 	fi
+	if [[ $# == 2 ]]
+	then
+		clear
+		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
+		echo
+		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
+	else
+		clear
+		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
+		echo
+		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
+	fi
+	# hcreate incs/cub3D.h && mcreate && make && valgrind --leak-check=full --show-leak-kinds=all ./cub3D
+	# hcreate incs/cub3D.h && mcreate && make && clear && ./cub3D maps/map2.cub
+}
+
+function cub()
+{
+	cd ~/cub3d
+	hcrt=""
+	mcrt=""
+	mk="make"
+	or=""
+	gdb=""
+	if [[ $# == 1 ]]
+	then
+		if [[ "${1/h}" != $1 ]]
+		then
+			hcrt=" hcreate incs/cub3D.h "
+		fi
+		if [[ "${1/m}" != $1 && "${1/h}" != $1 ]]
+		then
+			mcrt+=" && "
+		fi
+		if [[ "${1/m}" != $1 ]]
+		then
+			mcrt+=" mcreate "
+		fi
+		if [[ "${1/m}" != $1 || "${1/h}" != $1 ]]
+		then
+			or+=" && "
+		fi
+		if [[ "${1/g}" != $1 ]]
+		then
+			gdb=" gdb --args "
+		elif [[ "${1/v}" != $1 ]]
+		then
+			gdb=" valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all"
+		fi
+		if [[ "${1/r}" != $1 ]]
+		then
+			mk+=" re"
+		fi
+	fi
+	if [[ $# == 2 ]]
+	then
+		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
+		echo
+		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
+	else
+		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
+		echo
+		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
+	fi
+	# hcreate incs/cub3D.h && mcreate && make && valgrind --leak-check=full --show-leak-kinds=all ./cub3D
+	# hcreate incs/cub3D.h && mcreate && make && clear && ./cub3D maps/map2.cub
 }
 
 function vlg()
@@ -1420,6 +1644,11 @@ function vstat()
 		echo -e "$GREEN\e[4m MEM $GREEN"
 		top -bn1 -o %MEM | head -n $hd | tail -$tl
 	fi
+}
+
+function pull_f()
+{
+	git add . && git stash && git pull
 }
 
 function scan()
@@ -1630,8 +1859,45 @@ function pyramid()
 	# echo -e "egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call"
 	# make CFLAGS=
 	echo "in makefile: -fdump-rtl-expand"
-	make re CFLAGS=-fdump-rtl-expand
-	egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call
+	# make fclean
+	make CFLAGS=-fdump-rtl-expand
+	egypt $(find . -name '*.expand' -print) > call.dot
+	sed -i '/mlx/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=gray\3/' call.dot
+	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
+	# egypt $(find . -name '*.expand' -print) | dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o ./call.png
+}
+
+function pharaoh()
+{
+	make fclean
+	code call.dot
+
+	make CFLAGS=-fdump-rtl-expand
+	egypt $(find . -name '*.expand' -print) > call.dot
+	sed -i '/mlx/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=gray\3/' call.dot
+	sed -i '/init_/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=lightblue\3/' call.dot
+	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
+
+	cd minilibx
+	make
+	cd ..
+
+	make CFLAGS=-fdump-rtl-expand
+	egypt $(find . -name '*.expand' -print) > call.dot
+	sed -i '/mlx/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=gray\3/' call.dot
+	sed -i '/init_/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=lightblue\3/' call.dot
+	# graph [bgcolor=black fontcolor=white];
+	# node [bgcolor=black fontcolor=white color=white];
+	# edge [color=white];
+	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
+
+	code call.png
+}
+
+function t()
+{
+	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
+	code call.png
 }
 
 function where_cfg()
@@ -1695,6 +1961,7 @@ function end_work()
 		echo "missing arg(s)";
 	else
 		message="$1"
+		make fclean
 		date
 		git status
 		echo
@@ -1835,6 +2102,7 @@ function endlate()
 		echo "missing arg(s)";
 	else
 		message="$1";
+		make fclean
 		date;
 		git status;
 		echo;
@@ -1974,3 +2242,6 @@ function msearch()
 	fi
 }
 
+# launch bash without bashrc
+
+export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
