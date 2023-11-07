@@ -93,40 +93,6 @@ exe_name="a.out"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
 
-function t10()
-{
-	sudo pacman -S code=1.67.0
-	sudo pacman -S code=1.67.1
-	sudo pacman -S code=1.67.2
-	sudo pacman -S code=1.67.3
-	sudo pacman -S code=1.67.4
-	sudo pacman -S code=1.67.5
-	sudo pacman -S code=1.67.6
-	sudo pacman -S code=1.67.7
-	sudo pacman -S code=1.67.8
-	sudo pacman -S code=1.67.9
-	sudo pacman -S code=1.67.0-1
-	sudo pacman -S code=1.67.1-1
-	sudo pacman -S code=1.67.2-1
-	sudo pacman -S code=1.67.3-1
-	sudo pacman -S code=1.67.4-1
-	sudo pacman -S code=1.67.5-1
-	sudo pacman -S code=1.67.6-1
-	sudo pacman -S code=1.67.7-1
-	sudo pacman -S code=1.67.8-1
-	sudo pacman -S code=1.67.9-1
-	sudo pacman -S code=1.67.0-2
-	sudo pacman -S code=1.67.1-2
-	sudo pacman -S code=1.67.2-2
-	sudo pacman -S code=1.67.3-2
-	sudo pacman -S code=1.67.4-2
-	sudo pacman -S code=1.67.5-2
-	sudo pacman -S code=1.67.6-2
-	sudo pacman -S code=1.67.7-2
-	sudo pacman -S code=1.67.8-2
-	sudo pacman -S code=1.67.9-2
-}
-
 function ld()
 {
 	actual_path=$(pwd)/*
@@ -151,6 +117,16 @@ function lf()
 			echo -e "$GREEN $filename"
 		fi
 	done
+}
+
+function open()
+{
+	if [[ $# == 1 ]]
+	then
+		xdg-open $1
+	else
+		xdg-open .
+	fi
 }
 
 function updt()
@@ -676,7 +652,7 @@ function nds()
 		fi
 
 		if [[ -f $file ]]; then
-			echo -e "$BOLD_YELLOW$file$RST exist and it is launched with $BOLD_GREEN""node$RST"
+			echo -e "$BOLD_YELLOW$file$RST exist and it is launched with $BOLD_GREEN""node<$RST"
 			if [[ $2 == "-c" ]]; then
 				echo -e "and $BOLD_CYAN""vscode$RST"
 				code $file
@@ -762,8 +738,8 @@ function rmv()
 				echo
 				echo -e "$(file $1 | awk -F ':' '{print "\033[32;1m"$1 "\033[0m:" $2}')\t$BOLD_WHITE""size:$RST $BOLD_GREEN$(du -sh $1 | awk '{print $1}')$RST"
 				echo
-				echo -e "	$(stat $1 | tail -n3 | head -1 | awk '{print $1}' | awk -F ':' '{print "\033[37;1m"$1"\033[0m" $2}')\t$(stat $1 | tail -n1 | awk '{print "\033[32m"$2}') $(stat $1 | tail -n1 | awk '{print $3}' | awk -F '.' '{print $1"\033[0m"}')"
-				echo -e "	$(stat $1 | tail -n1 | awk '{print $1}' | awk -F ':' '{print "\033[37;1m"$1"\033[0m" $2}')\t$(stat $1 | tail -n1 | awk '{print "\033[32m"$2}') $(stat $1 | tail -n1 | awk '{print $3}' | awk -F '.' '{print $1"\033[0m"}')"
+				echo -e "\t$BOLD_WHITE""Modify$RST\t$(stat $1 | tail -n3 | head -1 | awk '{print "\033[32m"$2}') $(stat $1 | tail -n3 | head -1 | awk '{print $3}' | awk -F '.' '{print $1"\033[0m"}')"
+				echo -e "\t$BOLD_WHITE""Birth$RST\t$(stat $1 | tail -n1 | awk '{print "\033[32m"$2}') $(stat $1 | tail -n1 | awk '{print $3}' | awk -F '.' '{print $1"\033[0m"}')"
 				echo
 				echo -e "Do you really want to remove the file $BOLD_GREEN $1 $RST ? (y/n) ─┐"
 				echo -ne "┌────────────────────────────"
@@ -808,6 +784,7 @@ function rmv()
 				read answer
 				if [[ $answer == "y" || $answer == "yes" ]]
 				then
+					echo
 					echo -e $RED"/usr/bin/rm -rf $1"$RST
 					/usr/bin/rm -rf "$1"
 				else
@@ -821,6 +798,7 @@ function rmv()
 				sleep 3
 				read answer
 				if [[ $answer == 'y' || $answer == 'yes' ]]; then
+					echo
 					echo "rm -rf $1"
 					/usr/bin/rm -rf $1
 				else
@@ -838,9 +816,16 @@ function rmv()
 
 # }
 
-function before()
+function copy()
 {
-	cat save.h > ft_philo.h
+	if [ -p /dev/stdin ]; then
+		xclip -selection clipboard
+		echo
+		echo -e "\t✅ "$BACK_GREEN" copy to clipboard "$RST
+		echo
+	else
+		echo nothing to copy...
+	fi
 }
 
 function t46()
@@ -1179,7 +1164,6 @@ function hcreate()
 	for val in "${struct_type[@]}";
 	do
 		start="\n$val\ "
-		end="${start}"
 		res="sed -i '"
 		res=$res':a;N;$!ba;s/'
 		res=$res$start
@@ -1237,7 +1221,7 @@ function mcreate()
 		done
 		echo "" >> new_makefile
 		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
-		file_struct=(`ls srcs/*.c srcs/*/*.c`)
+		file_struct=(`ls srcs/*.c`)
 		ite=0
 		len=${#file_struct[*]}
 		let "len-=1"
@@ -1263,6 +1247,10 @@ function mcreate()
 			then
 				echo "" >> new_makefile
 			fi
+			if echo $val | grep -qvi "=" | grep -qi ":"
+			then
+				echo "" >> new_makefile
+			fi
 			echo "$val" >> new_makefile
 		done
 		echo "" >> new_makefile
@@ -1270,6 +1258,264 @@ function mcreate()
 
 		mv -f new_makefile Makefile
 	fi
+}
+
+function mcreate_cpp()
+{
+	# folder to search C file
+	# if [[ $# == 1 ]]
+	# then
+
+	# else
+
+	# fi
+
+	if cat Makefile | grep -onq "# ----------------------------------- srcs ----------------------------------- #";
+	then
+		start_srcs=$(cat Makefile | grep -on --color=never "# ----------------------------------- srcs ----------------------------------- #" | awk -F ':' '{print $1}')
+		end_srcs=$(cat Makefile | grep -on --color=never "# --------------------------------- end srcs --------------------------------- #" | awk -F ':' '{print $1}')
+		IFS=$'\n'
+		last_line=$(cat Makefile | wc -l)
+
+
+		mid1_srcs=$start_srcs
+		let "mid1_srcs-=1"
+
+		mid2_srcs=$end_srcs
+		let "mid2_srcs+=1"
+
+
+		save_first_part=($(sed -n "1,$mid1_srcs p" Makefile))
+		save_srcs=($(sed -n "$start_srcs,$end_srcs p" Makefile))
+		save_last_part=($(sed -n "$mid2_srcs,$last_line p" Makefile))
+
+		> new_makefile
+		for val in "${save_first_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
+		file_struct=(`ls src/*.cpp`)
+		ite=0
+		len=${#file_struct[*]}
+		let "len-=1"
+		for val in "${file_struct[@]}";
+		do
+			val=$(basename $val)
+			if [[ $ite -eq 0 ]]
+			then
+				echo -e "SRCS	=	$val \\" >> new_makefile
+			elif [[ $ite == $len ]]
+			then
+				echo -e "\t\t\t$val" >> new_makefile
+			else
+				echo -e "\t\t\t$val \\" >> new_makefile
+			fi
+			let "ite+=1"
+		done
+		echo "# --------------------------------- end srcs --------------------------------- #" >> new_makefile
+		echo "" >> new_makefile
+		for val in "${save_last_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			if echo $val | grep -qvi "=" | grep -qi ":"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "" >> new_makefile
+
+		mv -f new_makefile Makefile
+	fi
+}
+
+function hppc()
+{
+	if [[ $# != 0 ]]
+	then
+		name=""
+		for var in "$@"
+		do
+			word=$var
+			word=$(echo "$word" | tr '[:upper:]' '[:lower:]')
+			word=${word^}
+			name=$name$word
+		done
+		header_name="$(echo $name | tr a-z A-Z)""_HPP"
+		header_file="$name"".hpp"
+		cpp_file="$name"".cpp"
+	else
+		echo -e $W_ARGS
+		return 1;
+	fi
+
+	##### ERASE #####
+	> $header_file;
+
+	##### str_name #####
+	str_name="/*   $header_file"
+	nbr_char=${#str_name}
+	nbr_char=$(($nbr_char + 24))
+	while [[ $nbr_char -lt 80 ]]
+	do
+		str_name="$str_name "
+		nbr_char=$(($nbr_char + 1))
+	done
+	str_name="$str_name:+:      :+:    :+:   */"
+
+	##### by #####
+	str_by="/*   By: $(whoami) <$(whoami)@student.42.fr>"
+	nbr_char=${#str_by}
+	nbr_char=$(($nbr_char + 28))
+	while [[ $nbr_char -lt 80 ]]
+	do
+		str_by="$str_by "
+		nbr_char=$(($nbr_char + 1))
+	done
+	str_by="$str_by+#+  +:+       +#+        */"
+
+	##### created #####
+	date_ymd=$(date +%Y/%m/%d)
+	date_hms=$(date +%H:%M:%S)
+	save_created="nothing"
+	if [ -f $header_file ]
+	then
+		if [[ $(cat $header_file | wc -m) -gt 0 ]]
+		then
+			save_created=$(sed -n '/Created/{p;};x' $header_file)
+		fi
+	fi
+	str_created="/*   Created: $date_ymd $date_hms by $(whoami)"
+	nbr_char=${#str_created}
+	nbr_char=$(($nbr_char + 25))
+	while [[ $nbr_char -lt 80 ]]
+	do
+		str_created="$str_created "
+		nbr_char=$(($nbr_char + 1))
+	done
+	str_created="$str_created#+#    #+#             */"
+
+	##### updated #####
+	str_updated="/*   Updated: $date_ymd $date_hms by $(whoami)"
+	nbr_char=${#str_updated}
+	nbr_char=$(($nbr_char + 26))
+	while [[ $nbr_char -lt 80 ]]
+	do
+		str_updated="$str_updated "
+		nbr_char=$(($nbr_char + 1))
+	done
+	str_updated="$str_updated###   ########.fr       */"
+
+	echo "/* ************************************************************************** */" >> $header_file
+	echo "/*                                                                            */" >> $header_file
+	echo "/*                                                        :::      ::::::::   */" >> $header_file
+	echo "$str_name" >> $header_file
+	echo "/*                                                    +:+ +:+         +:+     */" >> $header_file
+	echo "$str_by" >> $header_file
+	echo "/*                                                +#+#+#+#+#+   +#+           */" >> $header_file
+	if [[ $save_created == "nothing" ]]
+	then
+		echo "$str_created" >> $header_file
+	else
+		echo "$save_created" >> $header_file
+	fi
+	echo "$str_updated" >> $header_file
+	echo "/*                                                                            */" >> $header_file
+	echo "/* ************************************************************************** */" >> $header_file
+
+	echo -e "\n#ifndef $header_name" >> $header_file
+	echo -e "# define $header_name\n" >> $header_file
+
+	echo -e "#include <string>" >> $header_file
+	echo -e "#include <cstdlib>" >> $header_file
+	echo -e "#include <iomanip>" >> $header_file
+	echo -e "#include <csignal>" >> $header_file
+	echo -e "#include <iostream>" >> $header_file
+
+	echo -e "" >> $header_file
+
+	echo -e "class $name"										>> $header_file
+	echo -e "{"													>> $header_file
+	echo -e "\tpublic:"											>> $header_file
+	echo -e "\t\t$name();"										>> $header_file
+	echo -e "\t\t~$name();"										>> $header_file
+	echo -e ""													>> $header_file
+	echo -e "\tprivate:"										>> $header_file
+	echo -e "\t\tstd::string\tname;"							>> $header_file
+	echo -e "};"													>> $header_file
+	echo -e ""													>> $header_file
+
+	echo -e "#endif" >> $header_file
+
+
+	echo "/* ************************************************************************** */" >> $cpp_file
+	echo "/*                                                                            */" >> $cpp_file
+	echo "/*                                                        :::      ::::::::   */" >> $cpp_file
+	echo "$str_name" >> $cpp_file
+	echo "/*                                                    +:+ +:+         +:+     */" >> $cpp_file
+	echo "$str_by" >> $cpp_file
+	echo "/*                                                +#+#+#+#+#+   +#+           */" >> $cpp_file
+	if [[ $save_created == "nothing" ]]
+	then
+		echo "$str_created" >> $cpp_file
+	else
+		echo "$save_created" >> $cpp_file
+	fi
+	echo "$str_updated" >> $cpp_file
+	echo "/*                                                                            */" >> $cpp_file
+	echo "/* ************************************************************************** */" >> $cpp_file
+
+	echo -e "\n#include \"$header_file\"\n" >> $cpp_file
+
+	echo -e "$name::$name(void)" >> $cpp_file
+	echo -e "{" >> $cpp_file
+	echo -e "	;" >> $cpp_file
+	echo -e "}" >> $cpp_file
+	echo -e "" >> $cpp_file
+
+	echo -e "$name::~$name(void)" >> $cpp_file
+	echo -e "{" >> $cpp_file
+	echo -e "	;" >> $cpp_file
+	echo -e "}" >> $cpp_file
+	echo -e "" >> $cpp_file
+
+}
+
+function clean_cpp()
+{
+	if [[ $(basename $PWD) == "module_0"* ]]
+	then
+		echo here !
+		LSL=$(ls)
+
+		declare -a MYRA
+		MYRA=($LSL)
+		for val in "${MYRA[@]}";
+		do
+			echo -e $BACK_GREEN" ----- $val ----- "$RST
+			cd $val
+			make re
+			make fclean
+			cd ..
+		done
+	else
+		echo not in module_0X...
+	fi
+}
+
+function rn_limit()
+{
+	echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 }
 
 function nbr_func()
@@ -1406,14 +1652,6 @@ function nbr_func()
 	# find . -type f -name '*.[ch]' -exec ctags -x --c-kinds=f {} ';'
 }
 
-function abc()
-{
-	while [[ true ]]
-	do
-		clear && norminette . | grep -i error --color=never
-		sleep 3
-	done
-}
 
 function hm()
 {
@@ -1481,54 +1719,66 @@ function cub2()
 
 function cub()
 {
-	cd ~/cub3d
-	hcrt=""
-	mcrt=""
-	mk="make"
-	or=""
-	gdb=""
+
+	cmd="cd ~/cub3d && clear "
+
+	h=""
+	r=""
+	m=""
+	g=""
+	v=""
+	# big=$1
+	# needle="r"
+	if [[ $# -ge 1 ]]
+	then
+		if [[ "${1/'g'}" != $1 && "${1/'v'}" != $1 ]]
+		then
+			echo -e $RED"something wrong"$RST
+			exit 0
+		fi
+		if [[ "${1/'h'}" != $1 ]]
+		then
+			h=" && hcreate incs/cub3D.h "
+		fi
+		if [[ "${1/'m'}" != $1 ]]
+		then
+			m=" && mcreate "
+		fi
+		if [[ "${1/'r'}" != $1 ]]
+		then
+			r=" && make re"
+		else
+			r=" && make"
+		fi
+		if [[ "${1/'v'}" != $1 && "${1/'g'}" == $1 ]]
+		then
+			v="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes "
+		elif [[ "${1/'g'}" != $1 && "${1/'v'}" == $1 ]]
+		then
+			g="gdb"
+		fi
+	fi
 	if [[ $# == 1 ]]
 	then
-		if [[ "${1/h}" != $1 ]]
-		then
-			hcrt=" hcreate incs/cub3D.h "
-		fi
-		if [[ "${1/m}" != $1 && "${1/h}" != $1 ]]
-		then
-			mcrt+=" && "
-		fi
-		if [[ "${1/m}" != $1 ]]
-		then
-			mcrt+=" mcreate "
-		fi
-		if [[ "${1/m}" != $1 || "${1/h}" != $1 ]]
-		then
-			or+=" && "
-		fi
-		if [[ "${1/g}" != $1 ]]
-		then
-			gdb=" gdb --args "
-		elif [[ "${1/v}" != $1 ]]
-		then
-			gdb=" valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all"
-		fi
-		if [[ "${1/r}" != $1 ]]
-		then
-			mk+=" re"
-		fi
-	fi
-	if [[ $# == 2 ]]
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub"
+		eval $total
+		# echo
+		# echo $total
+		# echo
+	elif [[ $# == 2 ]]
 	then
-		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
-		echo
-		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D $2"
-	else
-		eval "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
-		echo
-		echo "$hcrt$mcrt$or $mk && clear && $gdb ./cub3D maps/trois.cub"
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D $2"
+		eval $total
+		# echo
+		# echo $total
+		# echo
+	elif [[ $# == 0 ]]
+	then
+		total=$cmd$h$m$r" && clear && "$v$g" ./cub3D maps/map2.cub "
+		# echo
+		# echo $total
+		# echo
 	fi
-	# hcreate incs/cub3D.h && mcreate && make && valgrind --leak-check=full --show-leak-kinds=all ./cub3D
-	# hcreate incs/cub3D.h && mcreate && make && clear && ./cub3D maps/map2.cub
 }
 
 function vlg()
@@ -1878,9 +2128,9 @@ function pharaoh()
 	sed -i '/init_/s/\(.*\[\)\([^]]*\)\(].*\)/\1\2 style=filled fontcolor=black fillcolor=lightblue\3/' call.dot
 	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
 
-	cd minilibx
-	make
-	cd ..
+	# cd minilibx
+	# make
+	# cd ..
 
 	make CFLAGS=-fdump-rtl-expand
 	egypt $(find . -name '*.expand' -print) > call.dot
@@ -1891,12 +2141,6 @@ function pharaoh()
 	# edge [color=white];
 	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
 
-	code call.png
-}
-
-function t()
-{
-	dot -Gsize=3000,3000 -Grankdir=LR -Tpng -o call.png call.dot
 	code call.png
 }
 
@@ -2241,6 +2485,8 @@ function msearch()
 		echo -e $W_ARGS
 	fi
 }
+
+
 
 # launch bash without bashrc
 
