@@ -1447,7 +1447,9 @@ function hppc()
 	echo -e "class $name"										>> $header_file
 	echo -e "{"													>> $header_file
 	echo -e "\tpublic:"											>> $header_file
-	echo -e "\t\t$name();"										>> $header_file
+	echo -e "\t\t$name();" 										>> $header_file
+	echo -e "\t\t$name(const $name&src);" 										>> $header_file
+	echo -e "\t\t$name&operator=(const $name&src);" 										>> $header_file
 	echo -e "\t\t~$name();"										>> $header_file
 	echo -e ""													>> $header_file
 	echo -e "\tprivate:"										>> $header_file
@@ -1479,13 +1481,26 @@ function hppc()
 
 	echo -e "$name::$name(void)" >> $cpp_file
 	echo -e "{" >> $cpp_file
-	echo -e "	;" >> $cpp_file
+	echo -e "	std::cout << \"$name Constructor called\" << std::endl;" >> $cpp_file
 	echo -e "}" >> $cpp_file
 	echo -e "" >> $cpp_file
 
+	echo -e "$name::$name(const $name& src)" >> $cpp_file
+	echo -e "{" >> $cpp_file
+	echo -e "	std::cout << \"Copy $name constructor called\" << std::endl;" >> $cpp_file
+	echo -e "	*this = src;" >> $cpp_file
+	echo -e "}" >> $cpp_file
+
+	echo -e "$name& $name::operator=(const $name& src)" >> $cpp_file
+	echo -e "{" >> $cpp_file
+	echo -e "	std::cout << \"Overload $name operator called\" << std::endl;" >> $cpp_file
+	echo -e "	// private variables" >> $cpp_file
+	echo -e "	return (*this);" >> $cpp_file
+	echo -e "}" >> $cpp_file
+
 	echo -e "$name::~$name(void)" >> $cpp_file
 	echo -e "{" >> $cpp_file
-	echo -e "	;" >> $cpp_file
+	echo -e "	std::cout << \"$name Destructor called\" << std::endl;" >> $cpp_file
 	echo -e "}" >> $cpp_file
 	echo -e "" >> $cpp_file
 
@@ -2254,7 +2269,20 @@ function end_work()
 
 function act()
 {
-	complete -d /mnt/nfs/homes/$USER/42/cursus/ && cd ~/42/cursus/$1
+	cd ~/42/cursus/$1
+}
+
+complete -W "$(ls ~/42/cursus/)" act
+complete -W "$(ls ~/42/cursus/*/*)" act
+
+function complt()
+{
+	arr=$(ls -d ~/42/cursus/*/*/*)
+	# echo $arr
+	for var in $arr
+	do
+		echo $var | sed "s|$HOME/42/cursus/||"
+	done
 }
 
 function work()
