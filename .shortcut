@@ -72,10 +72,6 @@ export W_ARGS="$RED""wrong numbers of args$RST"
 export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
 # bind -s 'set completion-ignore-case on'
 
-SLEEP=2
-
-# alias norminette='norminette -R CheckForbiddenSourceHeader'
-# alias norminette='norminette | awk '\''{gsub(/OK/,"\033[1;32mOK\033[0m");}1'\'' | awk '\''{gsub(/Error!/,"\033[1;31mError!\033[0m");}1'\'
 alias norm='norminette | grep -vi ok'
 alias gcw='gcc -Wall -Wextra -Werror -g'
 
@@ -86,12 +82,18 @@ alias c='clear'
 alias l='ls'
 alias grep='grep --color=always --binary-files=without-match'
 alias env+='env -0 | sort -z | tr "\0" "\n"'
+alias vt='valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes '
 
 # shell_name=$(ps -ef | grep $$ | grep -v grep | head -1 | awk '{print $8}')
 shell_name=$(ps -p $$ | tail -n 1 | awk '{print $4}')
 exe_name="a.out"
 CC="gcc -Wall -Wextra -Werror -o $exe_name"
 input_file="./$exe_name"
+SLEEP=2
+
+complete -W "fclean clean re" -o default make
+
+shopt -s progcomp
 
 function ld()
 {
@@ -1298,8 +1300,8 @@ function mcreate_cpp()
 			fi
 			echo "$val" >> new_makefile
 		done
-		echo "" >> new_makefile
-		echo "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
+		echo -e "" >> new_makefile
+		echo -e "# ----------------------------------- srcs ----------------------------------- #" >> new_makefile
 		file_struct=(`ls src/*.cpp`)
 		ite=0
 		len=${#file_struct[*]}
@@ -1309,12 +1311,12 @@ function mcreate_cpp()
 			val=$(basename $val)
 			if [[ $ite -eq 0 ]]
 			then
-				echo -e "SRCS	=	$val \\" >> new_makefile
+				echo -e "SRC	=	$val \\" >> new_makefile
 			elif [[ $ite == $len ]]
 			then
-				echo -e "\t\t\t$val" >> new_makefile
+				echo -e "\t\t$val" >> new_makefile
 			else
-				echo -e "\t\t\t$val \\" >> new_makefile
+				echo -e "\t\t$val \\" >> new_makefile
 			fi
 			let "ite+=1"
 		done
@@ -1339,11 +1341,90 @@ function mcreate_cpp()
 	fi
 }
 
+function mcreate_hpp()
+{
+	# folder to search C file
+	# if [[ $# == 1 ]]
+	# then
+
+	# else
+
+	# fi
+
+	if cat Makefile | grep -onq "#---------------------------------- headers -----------------------------------#";
+	then
+		start_hpp=$(cat Makefile | grep -on --color=never "#---------------------------------- headers -----------------------------------#" | awk -F ':' '{print $1}')
+		end_hpp=$(cat Makefile | grep -on --color=never "#-------------------------------- end headers ---------------------------------#" | awk -F ':' '{print $1}')
+		IFS=$'\n'
+		last_line=$(cat Makefile | wc -l)
+
+
+		mid1_hpp=$start_hpp
+		let "mid1_hpp-=1"
+
+		mid2_hpp=$end_hpp
+		let "mid2_hpp+=1"
+
+
+		save_first_part=($(sed -n "1,$mid1_hpp p" Makefile))
+		save_hpp=($(sed -n "$start_hpp,$end_hpp p" Makefile))
+		save_last_part=($(sed -n "$mid2_hpp,$last_line p" Makefile))
+
+		> new_makefile
+		for val in "${save_first_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "#---------------------------------- headers -----------------------------------#" >> new_makefile
+		file_struct=(`ls includes/*.hpp`)
+		ite=0
+		len=${#file_struct[*]}
+		let "len-=1"
+		echo -e "HEAD = \$(addprefix \$(HEADER_DIR), \\" >> new_makefile
+		for val in "${file_struct[@]}";
+		do
+			val=$(basename $val)
+			echo -e "\t\t$val \\" >> new_makefile
+			let "ite+=1"
+		done
+		echo -e ")" >> new_makefile
+		echo "#-------------------------------- end headers ---------------------------------#" >> new_makefile
+		echo "" >> new_makefile
+		for val in "${save_last_part[@]}";
+		do
+			if echo $val | grep -qi "###"
+			then
+				echo "" >> new_makefile
+			fi
+			if echo $val | grep -qvi "=" | grep -qi ":"
+			then
+				echo "" >> new_makefile
+			fi
+			echo "$val" >> new_makefile
+		done
+		echo "" >> new_makefile
+		echo "" >> new_makefile
+
+		mv -f new_makefile Makefile
+	fi
+}
+
+function go()
+{
+	exc=$(find . -type f -executable)
+	clear && mcreate_cpp && mcreate_hpp && make re && clear && $exc
+}
+
 function hppc()
 {
+	name=""
 	if [[ $# != 0 ]]
 	then
-		name=""
 		for var in "$@"
 		do
 			word=$var
@@ -1444,18 +1525,24 @@ function hppc()
 
 	echo -e "" >> $header_file
 
-	echo -e "class $name"										>> $header_file
-	echo -e "{"													>> $header_file
-	echo -e "\tpublic:"											>> $header_file
-	echo -e "\t\t$name();" 										>> $header_file
-	echo -e "\t\t$name(const $name&src);" 										>> $header_file
-	echo -e "\t\t$name&operator=(const $name&src);" 										>> $header_file
-	echo -e "\t\t~$name();"										>> $header_file
-	echo -e ""													>> $header_file
-	echo -e "\tprivate:"										>> $header_file
-	echo -e "\t\tstd::string\tname;"							>> $header_file
-	echo -e "};"													>> $header_file
-	echo -e ""													>> $header_file
+	echo -e "class $name"												>> $header_file
+	echo -e "{"															>> $header_file
+	echo -e "\tpublic:"													>> $header_file
+	echo -e "\t\t$name(); // canonical form" 							>> $header_file
+	echo -e "\t\t$name(const $name&src); // canonical form"				>> $header_file
+	echo -e "\t\t$name&operator=(const $name&src); // canonical form"	>> $header_file
+	echo -e "\t\t~$name(); // canonical form"							>> $header_file
+	echo -e ""															>> $header_file
+	echo -e "\t\t// methods"												>> $header_file
+	echo -e ""															>> $header_file
+	echo -e "\t\t// getter"												>> $header_file
+	echo -e ""															>> $header_file
+	echo -e "\t\t// setter"												>> $header_file
+	echo -e ""															>> $header_file
+	echo -e "\tprivate:"												>> $header_file
+	echo -e "\t\tstd::string\tname;"									>> $header_file
+	echo -e "};"														>> $header_file
+	echo -e ""															>> $header_file
 
 	echo -e "#endif" >> $header_file
 
@@ -1477,8 +1564,9 @@ function hppc()
 	echo "/*                                                                            */" >> $cpp_file
 	echo "/* ************************************************************************** */" >> $cpp_file
 
-	echo -e "\n#include \"$header_file\"\n" >> $cpp_file
+	echo -e "\n#include \"../includes/$header_file\"\n" >> $cpp_file
 
+	echo -e "// canonical form" >> $cpp_file
 	echo -e "$name::$name(void)" >> $cpp_file
 	echo -e "{" >> $cpp_file
 	echo -e "	std::cout << \"$name Constructor called\" << std::endl;" >> $cpp_file
@@ -1494,7 +1582,7 @@ function hppc()
 	echo -e "$name& $name::operator=(const $name& src)" >> $cpp_file
 	echo -e "{" >> $cpp_file
 	echo -e "	std::cout << \"Overload $name operator called\" << std::endl;" >> $cpp_file
-	echo -e "	// private variables" >> $cpp_file
+	echo -e "	(void)src;" >> $cpp_file
 	echo -e "	return (*this);" >> $cpp_file
 	echo -e "}" >> $cpp_file
 
@@ -1517,11 +1605,40 @@ function clean_cpp()
 		MYRA=($LSL)
 		for val in "${MYRA[@]}";
 		do
-			echo -e $BACK_GREEN" ----- $val ----- "$RST
+			echo -e $BACK_CYAN" ----- $val ----- "$RST
 			cd $val
 			make re
 			make fclean
 			cd ..
+		done
+	else
+		echo not in module_0X...
+	fi
+}
+
+function clean_exo()
+{
+	if [[ $(basename $PWD) == "ex0"* ]]
+	then
+		echo here !
+		LSL=$(ls *.cpp)
+
+		declare -a arr_cpp
+		arr_cpp=($LSL)
+		for val in "${arr_cpp[@]}";
+		do
+			echo -e $BOLD_CYAN" $val moved to src "$RST
+			mv $val src/.
+		done
+
+		LSL=$(ls *.hpp)
+
+		declare -a arr_hpp
+		arr_hpp=($LSL)
+		for val in "${arr_hpp[@]}";
+		do
+			echo -e $BOLD_PURPLE" $val moved to includes "$RST
+			mv $val includes/.
 		done
 	else
 		echo not in module_0X...
@@ -2202,6 +2319,8 @@ function end()
 	sleep 0.5;
 	pkill --oldest Discord;
 	sleep 0.5;
+	pkill -SIGKILL -u $USER;
+	sleep 0.5;
 	pkill --newest code;
 	sleep 0.5;
 	pkill --oldest code;
@@ -2211,7 +2330,6 @@ function end()
 	pkill --oldest bash;
 	sleep 0.5;
 	pkill --oldest bash;
-	ft_lock;
 }
 
 function end_work()
@@ -2221,6 +2339,7 @@ function end_work()
 	else
 		message="$1"
 		make fclean
+		cd ~/42/.
 		date
 		git status
 		echo
@@ -2250,6 +2369,8 @@ function end_work()
 		sleep 0.5
 		pkill --oldest Discord
 		sleep 0.5
+		pkill -SIGKILL -u $USER
+		sleep 0.5
 		pkill --oldest bash
 		sleep 0.5
 		pkill --oldest bash
@@ -2262,8 +2383,7 @@ function end_work()
 		sleep 0.5
 		pkill --newest code
 		sleep 0.5
-		pkill --oldest code
-		ft_lock
+		pkill --oldest codev
 	fi
 }
 
@@ -2273,7 +2393,7 @@ function act()
 }
 
 complete -W "$(ls ~/42/cursus/)" act
-complete -W "$(ls ~/42/cursus/*/*)" act
+# complete -W "$(ls ~/42/cursus/*/*)" act
 
 function complt()
 {
@@ -2283,6 +2403,8 @@ function complt()
 	do
 		echo $var | sed "s|$HOME/42/cursus/||"
 	done
+
+	# subfolder completion
 }
 
 function work()
@@ -2375,6 +2497,7 @@ function endlate()
 	else
 		message="$1";
 		make fclean
+		cd ~/42/.
 		date;
 		git status;
 		echo;
@@ -2405,6 +2528,8 @@ function endlate()
 		sleep 0.25;
 		pkill --oldest Discord;
 		sleep 0.25;
+		pkill -SIGKILL -u $USER
+		sleep 0.25
 		pkill --oldest bash;
 		sleep 0.25;
 		pkill --oldest bash;
@@ -2515,7 +2640,10 @@ function msearch()
 }
 
 
-
+# IFS=$'\n'
+# for f in $(declare -F); do
+# 	echo "${f:11}"
+# done
 # launch bash without bashrc
 
 export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
