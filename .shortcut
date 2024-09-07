@@ -11,6 +11,26 @@
 #		 !:2-5 = all parameters in range 2-5 (inclusive)
 #		 !! = the previous command line
 
+function lgn()
+{
+	sudo docker logs nginx
+}
+
+function lgs()
+{
+	sudo docker logs backend
+}
+
+function xdb()
+{
+	sudo docker exec -it database bash
+}
+
+function xbe()
+{
+	sudo docker exec -it backend bash
+}
+
 ##### COLORS #####
 
 export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
@@ -79,7 +99,7 @@ alias gcl='git clone'
 
 alias ..='cd ..'
 alias c='clear'
-alias l='ls'
+alias l='ls -l'
 alias grep='grep --color=always --binary-files=without-match'
 alias env+='env -0 | sort -z | tr "\0" "\n"'
 alias vt='valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes '
@@ -94,6 +114,170 @@ SLEEP=2
 complete -W "fclean clean re" -o default make
 
 shopt -s progcomp
+
+
+PRPT() {
+	rtn_val=$?
+	ACT_PATH="$(pwd)/*"
+	file_nbr=0
+	dir_nbr=0
+	ln_nbr=0
+	for file in $ACT_PATH
+	do
+		dir="$(dirname "${file}")"
+		filename="$(basename "${file}")"
+		if [[ -f $file ]]; then
+			let "file_nbr+=1"
+		elif [[ -L $file ]]; then
+			let "ln_nbr+=1"
+		elif [[ -d $file ]]; then
+			let "dir_nbr+=1"
+		fi
+	done
+
+	local user='\u'
+	local host='\h'
+	local dir='\[\e[36;1;85m\]'"$(pwd)"'\[\e[0m\]'
+	cols=$(tput cols)
+
+	local old_files_folder='\[\e[36;6;85m\]files: \[\e[33m\]'"$file_nbr"'    \[\e[36;6;85m\]dir: \[\e[33m\]'"$dir_nbr"'\[\e[0m\]'
+	local files_folder='\[\e[37;6m\]files: \[\e[33m\]'"$file_nbr"'  \[\e[37;6m\]dir: \[\e[33m\]'"$dir_nbr"'\[\e[0m\]'
+	a='files: 0  dir: 0'
+	local prompt="$dir    $files_folder\n\[\e[36m\] $user\[\e[33;1m\]@\[\e[0;36m\]$host\[\e[0m\] \[\e[36m\]♠\[\e[0m\]"
+
+
+	charge=$(cat /sys/class/power_supply/BAT1/status)
+	perc_bat=$(cat /sys/class/power_supply/BAT1/capacity)
+
+	battery=""
+	if [[ $charge == "Discharging" ]] then
+		battery+="🌙 "
+	elif [[ $charge == "Full" ]] then
+		battery+="⭐ "
+	else
+		battery+="⚡ "
+	fi
+	battery+=" [\[\e[42;32m\]"
+	for ((i=0; i<$perc_bat / 10; i++))
+	do
+		if [[ $i -eq 3 && $perc_bat -eq 100 ]] then
+			battery+="\[\e[42;30m\]100%\[\e[42;32m\]"
+			let "i+=3"
+		elif [[ $i -eq 4 ]] then
+			battery+="\[\e[42;30m\]"
+			battery+=$(( $perc_bat / 10 ))
+		elif [[ $i -eq 5 ]] then
+			battery+=$(( $perc_bat % 10 ))
+		elif [[ $i -eq 6 ]] then
+			battery+="%\[\e[42;32m\]"
+		else
+			battery+="."
+		fi
+		# battery+="."
+	done
+
+	battery+="\[\e[41;31m\]"
+	for ((j=i; j<10; j++))
+	do
+		if [[ $j -eq 4 ]] then
+			battery+="\[\e[41;30m\]"
+			battery+=$(( $perc_bat / 10 ))
+		elif [[ $j -eq 5 ]] then
+			battery+=$(( $perc_bat % 10 ))
+		elif [[ $j -eq 6 ]] then
+			battery+="%\[\e[41;31m\]"
+		else
+			battery+="."
+		fi
+		# battery+="."
+	done
+
+	battery+="\[\e[0m\]]\[\e[36m\]─┘"
+
+
+
+	dirn=$(basename $PWD)
+	hst=$(uname -n)
+
+	ff=$(( ${#files_folder} - 53 ))
+	dn=${#dirn}
+	usr=${#USER}
+	ht=${#hst}
+
+	rest1=$(( $cols - ${#PWD} - 18))
+	rest2=$(( $cols - ${#files_folder} - ${#dirn} + 10 ))
+	short_rest1=$(( $cols - 18))
+	short_rest2=$(( $cols - $ff - ${#dirn} - 12))
+
+	len2="$(( 3 + $usr + 3 + $ht + 3 + $dn + 2 + $ff + 17 + 1))"
+#	│ [gael @ msi-modern]  gael  files: 44  dir: 89⚡  [....64%...]─┘
+
+
+	end1=""
+	for ((i=0; i<$rest1; i++))
+	do
+		end1+="─"
+	done
+	end1+="┐"
+	end2=""
+	for ((i=0; i<$rest2; i++))
+	do
+		end2+=" "
+	done
+	end2+=$battery
+
+
+	short_end1=""
+	for ((i=0; i<$short_rest1; i++))
+	do
+		short_end1+="─"
+	done
+	short_end1+="┐"
+	short_end2=""
+	for ((i=0; i<$short_rest2; i++))
+	do
+		short_end2+=" "
+	done
+	short_end2+="\[\e[36m\]$perc_bat% ─┘"
+
+
+# todo
+# e_short
+# set a limit to pwd length
+# make +=" "
+
+
+	local line1="\[\e[36m\]┌───── \[\e[33m\]$(date +'%T') \[\e[36m\]$(pwd)\[\e[0m\] \[\e[36m\]$end1\[\e[0m\]"
+	local line2="\[\e[36m\]│ \[\e[0;46;30m\][$user\[\e[0;46;30m\] @ \[\e[0;46;30m\]$host]\[\e[0;1;37m\]  $(basename $PWD)\[\e[0m\]  "
+	local line3="\[\e[36m\]└─ $rtn_val ♠ \[\e[0m\]"
+
+	local e_files_folder='\[\e[37;6m\]files: \[\e[31m\]'"$file_nbr"'  \[\e[37;6m\]dir: \[\e[31m\]'"$dir_nbr"'\[\e[0m\]'
+	local e_line1="\[\e[36m\]┌───── \[\e[31m\]$(date +'%T') \[\e[36m\]$(pwd)\[\e[0m\] \[\e[36m\]$end1\[\e[0m\]"
+	local e_line3="\[\e[36m\]└─ \[\e[31m\]$rtn_val ♠ \[\e[0m\]"
+
+	local short_line1="\[\e[36m\]┌───── \[\e[33m\]$(date +'%T') \[\e[36m\]$short_end1\[\e[0m\]"
+	local short_line2="\[\e[36m\]│ \[\e[0;46;30m\] $(basename $PWD) \[\e[0;1;37m\]\[\e[0m\] "
+	local short_line3="\[\e[36m\]└─ $rtn_val ♠ \[\e[0m\]"
+
+	local short_e_files_folder='\[\e[37;6m\]files: \[\e[31m\]'"$file_nbr"'  \[\e[37;6m\]dir: \[\e[31m\]'"$dir_nbr"'\[\e[0m\]'
+	local short_e_line1="\[\e[36m\]┌───── \[\e[31m\]$(date +'%T') \[\e[36m\]$(pwd)\[\e[0m\] \[\e[36m\]$end1\[\e[0m\]"
+	local short_e_line3="\[\e[36m\]└─ \[\e[31m\]$rtn_val ♠ \[\e[0m\]"
+
+	if [[ $rtn_val -eq 0 ]]
+	then
+		if [[ $len2 -ge $cols ]]
+		then
+			echo "$short_line1\n$short_line2$files_folder$short_end2\n$short_line3"
+		else
+			echo "$line1\n$line2$files_folder$end2\n$line3"
+		fi
+	else
+		echo "$e_line1\n$line2$e_files_folder$end2\n$e_line3"
+	fi
+}
+
+PROMPT_COMMAND='PS1="$(PRPT)"'
+PS1='$(PRPT)'
 
 function ld()
 {
@@ -119,6 +303,16 @@ function lf()
 			echo -e "$GREEN $filename"
 		fi
 	done
+}
+
+function last()
+{
+	if [[ $# -ge 1 ]]
+	then
+		ls -lt | head -$1
+	else
+		ls -lt | head -15
+	fi
 }
 
 function open()
@@ -240,7 +434,7 @@ function commit()
 function poush()
 {
 	if [[ $# == 1 ]]; then
-		make fclean
+		# make fclean
 
 		git status
 		echo -e "$BACK_GREEN Start poush $RST"
