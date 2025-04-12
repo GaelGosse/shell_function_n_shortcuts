@@ -11,26 +11,6 @@
 #		 !:2-5 = all parameters in range 2-5 (inclusive)
 #		 !! = the previous command line
 
-function lgn()
-{
-	sudo docker logs nginx
-}
-
-function lgs()
-{
-	sudo docker logs backend
-}
-
-function xdb()
-{
-	sudo docker exec -it database bash
-}
-
-function xbe()
-{
-	sudo docker exec -it backend bash
-}
-
 ##### COLORS #####
 
 export DEBUGINFOD_URLS="https://debuginfod.archlinux.org/"
@@ -371,22 +351,19 @@ function start()
 			echo
 			echo -e "\t "$BACK_CYAN" ZSH is restarted "$RST
 			echo
-		fi
-		if [ -f "/home/$USER/.zshrc" ]; then
+		elif [ -f "/home/$USER/.zshrc" ]; then
 			source ~/.zshrc
 			echo
 			echo -e "\t "$BACK_CYAN" ZSH is restarted "$RST
 			echo
 		fi
-	fi
-	if [[ $shell_name == "bash" ]]; then
+	elif [[ $shell_name == "bash" ]]; then
 		if [ -f "/mnt/nfs/homes/$USER/.bashrc" ]; then
 			source ~/.bashrc
 			echo
 			echo -e "\t "$BACK_CYAN" BASH is restarted "$RST
 			echo
-		fi
-		if [ -f "/home/$USER/.bashrc" ]; then
+		elif [ -f "/home/$USER/.bashrc" ]; then
 			source ~/.bashrc
 			echo
 			echo -e "\t "$BACK_CYAN" BASH is restarted "$RST
@@ -2653,6 +2630,62 @@ function high()
 		xrandr --output HDMI-2 --gamma 1:1:1 --brightness 1 || xrandr --output DP-1 --gamma 1:1:1 --brightness 1 || xrandr --output DP-2 --gamma 1:1:1 --brightness 1 || xrandr --output DP-3 --gamma 1:1:1 --brightness 1 || xrandr --output DP-4 --gamma 1:1:1 --brightness 0.9;
 	else
 		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-1 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-2 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-3 --gamma 1:0.8:0.6 --brightness 1 || xrandr --output DP-4 --gamma 1:0.8:0.6 --brightness 0.9;
+	fi
+}
+
+export BRGT=0.5
+
+function lower()
+{
+	step=0.1
+	if [[ -z "BRGT" ]]
+	then
+		export BRGT=0.5
+	fi
+
+	num1=$(echo "$BRGT - $step" | bc)
+	num2=0.1
+
+	if [ $(echo "$num1 < $num2" |bc -l) -eq 1 ]
+	then
+		echo "birghtness couldn' be lower"
+		num1=0.1
+	fi
+
+	export BRGT=$num1
+	echo $BRGT
+
+	if [[ $1 == "clr" ]]; then
+		xrandr --output HDMI-2 --gamma 1:1:1 --brightness $BRGT
+	else
+		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness $BRGT
+	fi
+}
+
+function higher()
+{
+	step=0.1
+	if [[ -z "BRGT" ]]
+	then
+		export BRGT=0.5
+	fi
+
+	num1=$(echo "$BRGT + $step" | bc)
+	num2=1
+
+	if [ $(echo "$num1 > $num2" |bc -l) -eq 1 ]
+	then
+		echo "birghtness couldn' be higher"
+		num1=1
+	fi
+
+	export BRGT=$num1
+	echo $BRGT
+
+	if [[ $1 == "clr" ]]; then
+		xrandr --output HDMI-2 --gamma 1:1:1 --brightness $BRGT
+	else
+		xrandr --output HDMI-2 --gamma 1:0.8:0.6 --brightness $BRGT
 	fi
 }
 
